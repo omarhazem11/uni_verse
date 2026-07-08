@@ -161,6 +161,16 @@ class LoginPage extends ConsumerWidget {
       ),
     );
   }
+    Widget _colorDot(Color color) {
+    return Container(
+      width: 7,
+      height: 7,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -281,6 +291,30 @@ class LoginPage extends ConsumerWidget {
                           ],
                         ),
                       ),
+
+                    const SizedBox(height: 12),
+
+                          // ── More universities hint ──
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _colorDot(const Color(0xFF6C3BFF)),
+                              const SizedBox(width: 6),
+                              _colorDot(const Color(0xFFFF5757)),
+                              const SizedBox(width: 6),
+                              _colorDot(const Color(0xFF00D4A0)),
+                              const SizedBox(width: 6),
+                              _colorDot(const Color(0xFFFFB327)),
+                              const SizedBox(width: 10),
+                              Text(
+                                '+46 more universities inside',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                ),
+                              ),
+                            ],
+                          ),
 
                       const Spacer(),
 
