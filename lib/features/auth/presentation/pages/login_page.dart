@@ -153,7 +153,7 @@ class LoginPage extends ConsumerWidget {
   Widget _buildButtons(
       BuildContext context, WidgetRef ref, AsyncValue authState) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -204,7 +204,7 @@ class LoginPage extends ConsumerWidget {
             textColor: Colors.white,
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
 
           Text(
             'By continuing, you agree to our Terms & Privacy Policy',

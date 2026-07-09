@@ -125,7 +125,7 @@ class _AnimatedUniCardState extends State<AnimatedUniCard>
         child: child,
       ),
       child: Container(
-        height: 68,
+        height: 62,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: widget.data.color.withValues(alpha: 0.15),
