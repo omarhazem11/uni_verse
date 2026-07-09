@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'core/theme/app_colors.dart';
+import 'core/widgets/uni_buddy_logo.dart';
 import 'firebase_options.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -27,9 +29,7 @@ class MyApp extends StatelessWidget {
       title: 'Uni Buddy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6C3BFF),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.violet),
         useMaterial3: true,
       ),
       home: const AuthGate(),
@@ -37,7 +37,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// AuthGate — forces minimum 2 second splash then routes based on auth state
 class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
 
@@ -70,26 +69,16 @@ class _AuthGateState extends ConsumerState<AuthGate> {
   }
 }
 
-// Splash Screen — logo centered, name at bottom like Instagram
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1033),
+      backgroundColor: AppColors.ink,
       body: Stack(
         children: [
-          // Logo in the center
-          Center(
-            child: SizedBox(
-              width: 90,
-              height: 90,
-              child: CustomPaint(painter: UniBuddyLogoPainter()),
-            ),
-          ),
-
-          // Name at the bottom like Instagram
+          const Center(child: UniBuddyLogo(size: 90)),
           Positioned(
             bottom: 48,
             left: 0,
@@ -115,7 +104,7 @@ class SplashScreen extends StatelessWidget {
                   'Egyptian University Discovery',
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: const Color(0xFF8B7FB8),
+                    color: AppColors.muted,
                   ),
                 ),
               ],
@@ -127,47 +116,39 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
-// Home placeholder — will be replaced with real HomeScreen after co-founder meeting
 class HomePlaceholder extends ConsumerWidget {
   const HomePlaceholder({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F4FF),
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                width: 64,
-                height: 64,
-                child: CustomPaint(painter: UniBuddyLogoPainter()),
-              ),
+              const UniBuddyLogo(size: 64),
               const SizedBox(height: 16),
               const Text(
                 'Welcome to Uni Buddy! 🎓',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1033),
+                  color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Home screen coming soon...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF8B7FB8),
-                ),
+                style: TextStyle(fontSize: 14, color: AppColors.muted),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () =>
                     ref.read(authNotifierProvider.notifier).signOut(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6C3BFF),
+                  backgroundColor: AppColors.violet,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
