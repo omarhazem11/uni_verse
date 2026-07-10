@@ -1,10 +1,10 @@
 {
   "roots": [
-    "uni_buddy"
+    "uni_verse"
   ],
   "packages": [
     {
-      "name": "uni_buddy",
+      "name": "uni_verse",
       "version": "1.0.0+1",
       "dependencies": [
         "cached_network_image",

@@ -1,5 +1,5 @@
-name: uni_buddy
-description: "Uni Buddy - Egyptian University Discovery App"
+name: uni_verse
+description: "Uni-Verse - Egyptian University Discovery App"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -50,3 +50,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/images/

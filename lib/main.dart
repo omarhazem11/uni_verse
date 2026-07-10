@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/theme/app_colors.dart';
-import 'core/widgets/uni_buddy_logo.dart';
+import 'core/widgets/uni_verse_logo.dart';
 import 'firebase_options.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Uni Buddy',
+      title: 'Uni-Verse',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.violet),
@@ -78,7 +78,7 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: AppColors.ink,
       body: Stack(
         children: [
-          const Center(child: UniBuddyLogo(size: 90)),
+          const Center(child: UniVerseLogo(size: 90)),
           Positioned(
             bottom: 48,
             left: 0,
@@ -95,7 +95,7 @@ class SplashScreen extends StatelessWidget {
                     ),
                     children: const [
                       TextSpan(text: 'Uni', style: TextStyle(color: Color(0xFFA08FFF))),
-                      TextSpan(text: ' Buddy', style: TextStyle(color: Colors.white)),
+                      TextSpan(text: '-Verse', style: TextStyle(color: Colors.white)),
                     ],
                   ),
                 ),
@@ -128,10 +128,10 @@ class HomePlaceholder extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const UniBuddyLogo(size: 64),
+              const UniVerseLogo(size: 64),
               const SizedBox(height: 16),
               const Text(
-                'Welcome to Uni Buddy! 🎓',
+                'Welcome to Uni-Verse! 🎓',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

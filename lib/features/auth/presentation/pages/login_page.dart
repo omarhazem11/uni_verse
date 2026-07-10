@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/uni_buddy_logo.dart';
+import '../../../../core/widgets/uni_verse_logo.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/social_button.dart';
 import '../widgets/uni_card_grid.dart';
@@ -65,7 +65,7 @@ class LoginPage extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const UniBuddyLogo(size: 44),
+              const UniVerseLogo(size: 44),
               const SizedBox(width: 12),
               RichText(
                 text: TextSpan(
@@ -76,7 +76,7 @@ class LoginPage extends ConsumerWidget {
                   ),
                   children: const [
                     TextSpan(text: 'Uni', style: TextStyle(color: Color(0xFFA08FFF))),
-                    TextSpan(text: ' Buddy', style: TextStyle(color: Colors.white)),
+                    TextSpan(text: '-Verse', style: TextStyle(color: Colors.white)),
                   ],
                 ),
               ),
