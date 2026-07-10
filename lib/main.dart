@@ -7,6 +7,11 @@ import 'core/widgets/uni_verse_logo.dart';
 import 'firebase_options.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/home/presentation/pages/dashboard_page.dart';
+import 'features/onboarding/domain/entities/user_type.dart';
+import 'features/onboarding/presentation/pages/coming_soon_page.dart';
+import 'features/onboarding/presentation/pages/onboarding_page.dart';
+import 'features/onboarding/presentation/providers/onboarding_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +69,26 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     return authState.when(
       loading: () => const SplashScreen(),
       error: (_, __) => const LoginPage(),
-      data: (user) => user != null ? const HomePlaceholder() : const LoginPage(),
+      data: (user) => user != null ? const _PostLoginRouter() : const LoginPage(),
+    );
+  }
+}
+
+class _PostLoginRouter extends ConsumerWidget {
+  const _PostLoginRouter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userTypeAsync = ref.watch(userTypeProvider);
+
+    return userTypeAsync.when(
+      loading: () => const SplashScreen(),
+      error: (_, __) => const OnboardingPage(),
+      data: (userType) => switch (userType) {
+        null => const OnboardingPage(),
+        UserType.student => const DashboardPage(),
+        UserType.searching => const ComingSoonPage(),
+      },
     );
   }
 }
@@ -111,54 +135,6 @@ class SplashScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class HomePlaceholder extends ConsumerWidget {
-  const HomePlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const UniVerseLogo(size: 64),
-              const SizedBox(height: 16),
-              const Text(
-                'Welcome to Uni-Verse! 🎓',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.ink,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Home screen coming soon...',
-                style: TextStyle(fontSize: 14, color: AppColors.muted),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () =>
-                    ref.read(authNotifierProvider.notifier).signOut(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.violet,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Sign Out'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
