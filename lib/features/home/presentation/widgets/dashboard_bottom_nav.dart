@@ -39,6 +39,7 @@ class _NavItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: active

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/uni_verse_logo.dart';
 import '../../domain/entities/user_type.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_choice_card.dart';
@@ -18,8 +19,10 @@ class OnboardingPage extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              const Center(child: UniVerseLogo(size: 56)),
+              const SizedBox(height: 24),
               Text(
                 'One quick question',
                 style: GoogleFonts.nunito(
@@ -30,13 +33,22 @@ class OnboardingPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                'Are you already a student, or\nsearching for your university?',
-                style: GoogleFonts.nunito(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.ink,
-                  height: 1.25,
+              // FittedBox guarantees exactly the 2 lines defined by the
+              // manual break below, scaled to whatever size actually fits
+              // the device width — at 24px this sentence needs ~667px for
+              // its longer half, well over a phone's ~330px column, so
+              // without this it silently wraps into 4-6 lines instead.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: Text(
+                  'Are you already a student, or\nsearching for your university?',
+                  style: GoogleFonts.nunito(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.ink,
+                    height: 1.25,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),

@@ -7,49 +7,68 @@ class DashboardTileGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.35,
+    return Column(
       children: [
-        DashboardTile(
-          icon: Icons.checklist_rounded,
-          title: 'Tasks',
-          subtitle: 'Nothing yet',
-          background: AppColors.tileCoralBg,
-          iconBackground: AppColors.tileCoralIcon,
-          textColor: AppColors.tileCoralText,
-          onTap: () {},
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: DashboardTile(
+                  icon: Icons.checklist_rounded,
+                  title: 'Tasks',
+                  subtitle: 'Add your first task! ✏️',
+                  background: AppColors.tileCoralBg,
+                  iconBackground: AppColors.tileCoralIcon,
+                  accent: AppColors.tileCoralText,
+                  onTap: () {},
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DashboardTile(
+                  icon: Icons.calendar_month_rounded,
+                  title: 'Planner',
+                  subtitle: 'Plan your week 📅',
+                  background: AppColors.tileVioletBg,
+                  iconBackground: AppColors.tileVioletIcon,
+                  accent: AppColors.tileVioletText,
+                  onTap: () {},
+                ),
+              ),
+            ],
+          ),
         ),
-        DashboardTile(
-          icon: Icons.calendar_month_rounded,
-          title: 'Planner',
-          subtitle: 'No events',
-          background: AppColors.tileVioletBg,
-          iconBackground: AppColors.tileVioletIcon,
-          textColor: AppColors.tileVioletText,
-          onTap: () {},
-        ),
-        DashboardTile(
-          icon: Icons.description_outlined,
-          title: 'Notes',
-          subtitle: '0 saved',
-          background: AppColors.tileMintBg,
-          iconBackground: AppColors.tileMintIcon,
-          textColor: AppColors.tileMintText,
-          onTap: () {},
-        ),
-        DashboardTile(
-          icon: Icons.emoji_events_outlined,
-          title: 'Achievements',
-          subtitle: '0 badges',
-          background: AppColors.tileAmberBg,
-          iconBackground: AppColors.tileAmberIcon,
-          textColor: AppColors.tileAmberText,
-          onTap: () {},
+        const SizedBox(height: 12),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: DashboardTile(
+                  icon: Icons.description_outlined,
+                  title: 'Notes',
+                  subtitle: 'Start writing 📝',
+                  background: AppColors.tileMintBg,
+                  iconBackground: AppColors.tileMintIcon,
+                  accent: AppColors.tileMintText,
+                  onTap: () {},
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DashboardTile(
+                  icon: Icons.emoji_events_outlined,
+                  title: 'Badges',
+                  subtitle: 'Earn first badge 🏆',
+                  background: AppColors.tileAmberBg,
+                  iconBackground: AppColors.tileAmberIcon,
+                  accent: AppColors.tileAmberText,
+                  onTap: () {},
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

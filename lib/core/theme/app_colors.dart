@@ -12,6 +12,7 @@ class AppColors {
   static const muted  = Color(0xFF8B7FB8);
   static const bg     = Color(0xFFF7F4FF);
   static const divider = Color(0xFFEFEAFB);
+  static const progressTrack = Color(0xFFF0ECF9);
 
   // Dashboard tile tints
   static const tileCoralBg   = Color(0xFFFFF0F0);

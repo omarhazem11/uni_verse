@@ -43,7 +43,6 @@ class DashboardTopNav extends ConsumerWidget {
               _NavIconButton(
                 icon: Icons.notifications_outlined,
                 iconColor: AppColors.violet,
-                showBadge: true,
                 onTap: () {},
               ),
               const SizedBox(width: 12),
@@ -62,14 +61,12 @@ class DashboardTopNav extends ConsumerWidget {
 class _NavIconButton extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
-  final bool showBadge;
   final VoidCallback onTap;
 
   const _NavIconButton({
     required this.icon,
     required this.iconColor,
     required this.onTap,
-    this.showBadge = false,
   });
 
   @override
@@ -84,26 +81,7 @@ class _NavIconButton extends StatelessWidget {
           color: AppColors.bg,
           borderRadius: BorderRadius.circular(13),
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 20),
-            if (showBadge)
-              Positioned(
-                top: 7,
-                right: 8,
-                child: Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(
-                    color: AppColors.coral,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        child: Icon(icon, color: iconColor, size: 20),
       ),
     );
   }
