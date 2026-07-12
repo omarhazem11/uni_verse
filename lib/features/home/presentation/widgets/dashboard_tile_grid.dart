@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../tasks/domain/entities/task_entity.dart';
+import '../../../tasks/presentation/pages/tasks_page.dart';
+import '../../../tasks/presentation/providers/task_provider.dart';
+import '../../../tasks/presentation/utils/task_stats.dart';
 import 'dashboard_tile.dart';
 
-class DashboardTileGrid extends StatelessWidget {
+class DashboardTileGrid extends ConsumerWidget {
   const DashboardTileGrid({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasks = ref.watch(tasksStreamProvider).value ?? [];
+    final tasksSubtitle = _tasksSubtitle(tasks);
+
     return Column(
       children: [
         Expanded(
@@ -17,11 +25,11 @@ class DashboardTileGrid extends StatelessWidget {
                 child: DashboardTile(
                   icon: Icons.checklist_rounded,
                   title: 'Tasks',
-                  subtitle: 'Add your first task! ✏️',
+                  subtitle: tasksSubtitle,
                   background: AppColors.tileCoralBg,
                   iconBackground: AppColors.tileCoralIcon,
                   accent: AppColors.tileCoralText,
-                  onTap: () {},
+                  onTap: () => _openTasks(context),
                 ),
               ),
               const SizedBox(width: 12),
@@ -72,5 +80,20 @@ class DashboardTileGrid extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _tasksSubtitle(List<TaskEntity> tasks) {
+    if (tasks.isEmpty) return 'Add your first task! ✏️';
+
+    final active = tasks.activeCount;
+    if (active == 0) return 'All done for now! ✅';
+
+    final dueSoon = tasks.dueWithin(const Duration(days: 3));
+    if (dueSoon > 0) return '$dueSoon due soon';
+    return '$active tasks on track';
+  }
+
+  void _openTasks(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksPage()));
   }
 }
