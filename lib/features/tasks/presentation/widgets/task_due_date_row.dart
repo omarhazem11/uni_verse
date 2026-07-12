@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../utils/task_date_format.dart';
 
-const _monthNames = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
+// If the student dismisses the time picker, the due date still needs a
+// concrete time component (Planner positions tasks on the timeline by
+// exact time) — default to end-of-day rather than leaving it at midnight.
+const _defaultDueTime = TimeOfDay(hour: 23, minute: 59);
 
 class TaskDueDateRow extends StatelessWidget {
   final DateTime? dueDate;
@@ -21,11 +22,11 @@ class TaskDueDateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = dueDate == null
         ? 'No due date'
-        : '${_monthNames[dueDate!.month - 1]} ${dueDate!.day}, ${dueDate!.year}';
+        : '${shortDateLabel(dueDate!)}, ${shortTimeLabel(dueDate!)}';
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => _pickDate(context),
+      onTap: () => _pickDateAndTime(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
@@ -57,19 +58,33 @@ class TaskDueDateRow extends StatelessWidget {
     );
   }
 
-  Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+  Future<void> _pickDateAndTime(BuildContext context) async {
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: dueDate ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.violet),
-        ),
-        child: child!,
-      ),
+      builder: _violetTheme,
     );
-    if (picked != null) onChanged(picked);
+    if (pickedDate == null || !context.mounted) return;
+
+    final initialTime = dueDate != null ? TimeOfDay.fromDateTime(dueDate!) : _defaultDueTime;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: _violetTheme,
+    );
+    final time = pickedTime ?? _defaultDueTime;
+
+    onChanged(DateTime(pickedDate.year, pickedDate.month, pickedDate.day, time.hour, time.minute));
+  }
+
+  Widget _violetTheme(BuildContext context, Widget? child) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.violet),
+      ),
+      child: child!,
+    );
   }
 }

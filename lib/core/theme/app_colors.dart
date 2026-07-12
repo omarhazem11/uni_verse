@@ -30,4 +30,8 @@ class AppColors {
   static const tileAmberBg   = Color(0xFFFFF8E1);
   static const tileAmberIcon = Color(0xFFFFEBAE);
   static const tileAmberText = Color(0xFF9A6500);
+
+  // Extra accents — planner color picker variety, alongside coral/violet/mint/amber.
+  static const skyBlue = Color(0xFF4EA8DE);
+  static const pink    = Color(0xFFFF6FB0);
 }

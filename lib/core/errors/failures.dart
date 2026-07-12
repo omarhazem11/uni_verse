@@ -23,3 +23,7 @@ class NetworkFailure extends Failure {
 class TaskFailure extends Failure {
   const TaskFailure(super.message);
 }
+
+class PlannerFailure extends Failure {
+  const PlannerFailure(super.message);
+}

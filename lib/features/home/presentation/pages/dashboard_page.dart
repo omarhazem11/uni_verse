@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../planner/presentation/providers/planner_provider.dart';
 import '../../../tasks/presentation/pages/tasks_page.dart';
 import '../../../tasks/presentation/providers/task_provider.dart';
 import '../../../tasks/presentation/utils/task_stats.dart';
@@ -26,6 +27,14 @@ class DashboardPage extends ConsumerWidget {
     final heroSubtitle = dueThisWeek > 0
         ? 'You have $dueThisWeek things due this week'
         : "You're all caught up! 🎉";
+
+    final hasScheduleItems = ref.watch(hasAnyScheduleItemsProvider).value ?? false;
+    final stepsDone = 1 + (tasks.isNotEmpty ? 1 : 0) + (hasScheduleItems ? 1 : 0);
+    final nextStepLabel = tasks.isEmpty
+        ? 'add a task next'
+        : !hasScheduleItems
+            ? 'plan your week next'
+            : 'earn your first badge next';
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -53,9 +62,9 @@ class DashboardPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     DashboardGettingStartedCard(
-                      stepsDone: tasks.isNotEmpty ? 2 : 1,
+                      stepsDone: stepsDone,
                       totalSteps: 4,
-                      nextStepLabel: tasks.isNotEmpty ? 'plan your week next' : 'add a task next',
+                      nextStepLabel: nextStepLabel,
                     ),
                   ],
                 ),

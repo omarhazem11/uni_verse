@@ -356,9 +356,10 @@ void main() {
   testWidgets('a custom reminder on the same day as the due date is accepted, not blocked',
       (tester) async {
     final fake = await _pumpTasksPage(tester);
-    // Real due dates always come from showDatePicker, which returns
-    // midnight — construct one the same way rather than DateTime.now(),
-    // which would carry today's current time-of-day and skew the test.
+    // Construct a midnight due date directly (bypassing the picker UI) to
+    // exercise the legacy "due date with no time component" branch of
+    // customReminderIsValid — still reachable for older records even
+    // though the picker now always attaches a real time.
     final tenDaysOut = DateTime.now().add(const Duration(days: 10));
     final dueDate = DateTime(tenDaysOut.year, tenDaysOut.month, tenDaysOut.day);
     final sameDayReminder = DateTime(dueDate.year, dueDate.month, dueDate.day, 15, 0);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../planner/presentation/pages/planner_page.dart';
+import '../../../planner/presentation/providers/planner_provider.dart';
 import '../../../tasks/domain/entities/task_entity.dart';
 import '../../../tasks/presentation/pages/tasks_page.dart';
 import '../../../tasks/presentation/providers/task_provider.dart';
@@ -14,6 +16,8 @@ class DashboardTileGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tasks = ref.watch(tasksStreamProvider).value ?? [];
     final tasksSubtitle = _tasksSubtitle(tasks);
+    final todayItemCount = ref.watch(dayItemsProvider(dateOnly(DateTime.now()))).value?.length ?? 0;
+    final plannerSubtitle = todayItemCount > 0 ? '$todayItemCount scheduled today' : 'Plan your week 📅';
 
     return Column(
       children: [
@@ -37,11 +41,11 @@ class DashboardTileGrid extends ConsumerWidget {
                 child: DashboardTile(
                   icon: Icons.calendar_month_rounded,
                   title: 'Planner',
-                  subtitle: 'Plan your week 📅',
+                  subtitle: plannerSubtitle,
                   background: AppColors.tileVioletBg,
                   iconBackground: AppColors.tileVioletIcon,
                   accent: AppColors.tileVioletText,
-                  onTap: () {},
+                  onTap: () => _openPlanner(context),
                 ),
               ),
             ],
@@ -95,5 +99,9 @@ class DashboardTileGrid extends ConsumerWidget {
 
   void _openTasks(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksPage()));
+  }
+
+  void _openPlanner(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PlannerPage()));
   }
 }
