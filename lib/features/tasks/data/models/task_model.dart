@@ -10,6 +10,7 @@ class TaskModel extends TaskEntity {
     super.category,
     super.dueDate,
     super.reminderOffset,
+    super.customReminderDateTime,
     super.isCompleted,
     required super.createdAt,
   });
@@ -23,6 +24,7 @@ class TaskModel extends TaskEntity {
       category: task.category,
       dueDate: task.dueDate,
       reminderOffset: task.reminderOffset,
+      customReminderDateTime: task.customReminderDateTime,
       isCompleted: task.isCompleted,
       createdAt: task.createdAt,
     );
@@ -47,6 +49,7 @@ class TaskModel extends TaskEntity {
       dueDate: (data['dueDate'] as Timestamp?)?.toDate(),
       reminderOffset:
           reminderMinutes != null ? Duration(minutes: reminderMinutes) : null,
+      customReminderDateTime: (data['customReminderDateTime'] as Timestamp?)?.toDate(),
       isCompleted: data['isCompleted'] as bool? ?? false,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
@@ -60,6 +63,8 @@ class TaskModel extends TaskEntity {
       'category': category.name,
       'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
       'reminderOffsetMinutes': reminderOffset?.inMinutes,
+      'customReminderDateTime':
+          customReminderDateTime != null ? Timestamp.fromDate(customReminderDateTime!) : null,
       'isCompleted': isCompleted,
       'createdAt': Timestamp.fromDate(createdAt),
     };

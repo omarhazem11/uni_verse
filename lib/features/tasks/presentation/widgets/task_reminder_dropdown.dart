@@ -11,24 +11,26 @@ const reminderOptions = <String, Duration?>{
   'No reminder': null,
 };
 
+const customReminderLabel = 'Custom...';
+
 class TaskReminderDropdown extends StatelessWidget {
   final bool enabled;
   final Duration? value;
-  final ValueChanged<Duration?> onChanged;
+  final bool isCustom;
+  final ValueChanged<String> onLabelSelected;
 
   const TaskReminderDropdown({
     super.key,
     required this.enabled,
     required this.value,
-    required this.onChanged,
+    required this.isCustom,
+    required this.onLabelSelected,
   });
 
-  String _labelFor(Duration? duration) {
+  String get _selectedLabel {
+    if (isCustom) return customReminderLabel;
     return reminderOptions.entries
-        .firstWhere(
-          (e) => e.value == duration,
-          orElse: () => reminderOptions.entries.last,
-        )
+        .firstWhere((e) => e.value == value, orElse: () => reminderOptions.entries.last)
         .key;
   }
 
@@ -45,15 +47,11 @@ class TaskReminderDropdown extends StatelessWidget {
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             isExpanded: true,
-            value: _labelFor(value),
+            value: _selectedLabel,
             icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.muted),
             style: GoogleFonts.inter(fontSize: 14, color: AppColors.ink),
-            onChanged: enabled
-                ? (label) {
-                    if (label != null) onChanged(reminderOptions[label]);
-                  }
-                : null,
-            items: reminderOptions.keys
+            onChanged: enabled ? (label) { if (label != null) onLabelSelected(label); } : null,
+            items: [...reminderOptions.keys, customReminderLabel]
                 .map((label) => DropdownMenuItem(value: label, child: Text(label)))
                 .toList(),
           ),

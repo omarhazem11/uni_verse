@@ -4,11 +4,13 @@ import '../../../../core/theme/app_colors.dart';
 class TaskCheckbox extends StatelessWidget {
   final bool isCompleted;
   final VoidCallback onTap;
+  final double size;
 
   const TaskCheckbox({
     super.key,
     required this.isCompleted,
     required this.onTap,
+    this.size = 24,
   });
 
   @override
@@ -17,8 +19,8 @@ class TaskCheckbox extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 24,
-        height: 24,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isCompleted ? AppColors.mint : Colors.transparent,
@@ -28,7 +30,7 @@ class TaskCheckbox extends StatelessWidget {
           ),
         ),
         child: isCompleted
-            ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+            ? Icon(Icons.check_rounded, size: size * 0.67, color: Colors.white)
             : null,
       ),
     );

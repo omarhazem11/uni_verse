@@ -34,6 +34,7 @@ class TaskActionsNotifier extends StateNotifier<AsyncValue<void>> {
     required TaskCategory category,
     DateTime? dueDate,
     Duration? reminderOffset,
+    DateTime? customReminderDateTime,
   }) async {
     final task = TaskEntity(
       id: const Uuid().v4(),
@@ -43,6 +44,7 @@ class TaskActionsNotifier extends StateNotifier<AsyncValue<void>> {
       category: category,
       dueDate: dueDate,
       reminderOffset: reminderOffset,
+      customReminderDateTime: customReminderDateTime,
       createdAt: DateTime.now(),
     );
     return _run(() => _repository.addTask(task));

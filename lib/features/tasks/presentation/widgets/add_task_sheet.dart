@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/task_entity.dart';
 import '../providers/task_provider.dart';
@@ -8,9 +7,12 @@ import 'task_category_selector.dart';
 import 'task_due_date_row.dart';
 import 'task_priority_selector.dart';
 import 'task_reminder_dropdown.dart';
+import 'task_reminder_section.dart';
 import 'task_save_button.dart';
 import 'task_sheet_field.dart';
+import 'task_sheet_field_label.dart';
 import 'task_sheet_header.dart';
+import 'task_sheet_save.dart';
 
 class AddTaskSheet extends ConsumerStatefulWidget {
   final TaskEntity? existingTask;
@@ -30,16 +32,29 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
   late TaskCategory _category = widget.existingTask?.category ?? TaskCategory.other;
   DateTime? _dueDate;
   Duration? _reminderOffset;
+  bool _isCustomReminder = false;
+  DateTime? _customReminderDateTime;
 
   @override
   void initState() {
     super.initState();
     _dueDate = widget.existingTask?.dueDate;
-    _reminderOffset = widget.existingTask?.reminderOffset ?? const Duration(days: 1);
+    _customReminderDateTime = widget.existingTask?.customReminderDateTime;
+    _isCustomReminder = _customReminderDateTime != null;
+    _reminderOffset =
+        _isCustomReminder ? null : (widget.existingTask?.reminderOffset ?? const Duration(days: 1));
     _titleController.addListener(() => setState(() {}));
   }
 
   bool get _isEditing => widget.existingTask != null;
+
+  bool get _canSave =>
+      _titleController.text.trim().isNotEmpty &&
+      customReminderIsValid(
+        isCustom: _isCustomReminder,
+        customReminderDateTime: _customReminderDateTime,
+        dueDate: _dueDate,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -69,36 +84,26 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
-                _fieldLabel('Priority'),
-                TaskPrioritySelector(
-                  selected: _priority,
-                  onChanged: (p) => setState(() => _priority = p),
-                ),
+                const TaskSheetFieldLabel('Priority'),
+                TaskPrioritySelector(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
                 const SizedBox(height: 16),
-                _fieldLabel('Category'),
-                TaskCategorySelector(
-                  selected: _category,
-                  onChanged: (c) => setState(() => _category = c),
-                ),
+                const TaskSheetFieldLabel('Category'),
+                TaskCategorySelector(selected: _category, onChanged: (c) => setState(() => _category = c)),
                 const SizedBox(height: 16),
-                _fieldLabel('Due date'),
-                TaskDueDateRow(
+                const TaskSheetFieldLabel('Due date'),
+                TaskDueDateRow(dueDate: _dueDate, onChanged: (d) => setState(() => _dueDate = d)),
+                const SizedBox(height: 16),
+                const TaskSheetFieldLabel('Remind me'),
+                TaskReminderSection(
                   dueDate: _dueDate,
-                  onChanged: (d) => setState(() => _dueDate = d),
-                ),
-                const SizedBox(height: 16),
-                _fieldLabel('Remind me'),
-                TaskReminderDropdown(
-                  enabled: _dueDate != null,
-                  value: _reminderOffset,
-                  onChanged: (d) => setState(() => _reminderOffset = d),
+                  reminderOffset: _reminderOffset,
+                  isCustom: _isCustomReminder,
+                  customReminderDateTime: _customReminderDateTime,
+                  onLabelSelected: _onReminderLabelSelected,
+                  onCustomChanged: (dt) => setState(() => _customReminderDateTime = dt),
                 ),
                 const SizedBox(height: 24),
-                TaskSaveButton(
-                  saving: saving,
-                  enabled: _titleController.text.trim().isNotEmpty,
-                  onPressed: _save,
-                ),
+                TaskSaveButton(saving: saving, enabled: _canSave, onPressed: _save),
               ],
             ),
           ),
@@ -107,41 +112,34 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
     );
   }
 
-  Widget _fieldLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
-          style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink),
-        ),
-      );
+  void _onReminderLabelSelected(String label) {
+    setState(() {
+      if (label == customReminderLabel) {
+        _isCustomReminder = true;
+        _reminderOffset = null;
+      } else {
+        _isCustomReminder = false;
+        _customReminderDateTime = null;
+        _reminderOffset = reminderOptions[label];
+      }
+    });
+  }
 
   Future<void> _save() async {
-    final title = _titleController.text.trim();
-    if (title.isEmpty) return;
-
-    final notifier = ref.read(taskActionsProvider.notifier);
+    if (!_canSave) return;
     final description = _descriptionController.text.trim();
-    final reminder = _dueDate == null ? null : _reminderOffset;
 
-    final success = _isEditing
-        ? await notifier.updateTask(widget.existingTask!.copyWith(
-            title: title,
-            description: description.isEmpty ? null : description,
-            priority: _priority,
-            category: _category,
-            dueDate: _dueDate,
-            clearDueDate: _dueDate == null,
-            reminderOffset: reminder,
-            clearReminderOffset: reminder == null,
-          ))
-        : await notifier.addTask(
-            title: title,
-            description: description.isEmpty ? null : description,
-            priority: _priority,
-            category: _category,
-            dueDate: _dueDate,
-            reminderOffset: reminder,
-          );
+    final success = await saveTaskFromSheet(
+      ref: ref,
+      existingTask: widget.existingTask,
+      title: _titleController.text.trim(),
+      description: description.isEmpty ? null : description,
+      priority: _priority,
+      category: _category,
+      dueDate: _dueDate,
+      reminderOffset: _dueDate == null || _isCustomReminder ? null : _reminderOffset,
+      customReminderDateTime: _dueDate == null || !_isCustomReminder ? null : _customReminderDateTime,
+    );
 
     if (success && mounted) Navigator.pop(context);
   }

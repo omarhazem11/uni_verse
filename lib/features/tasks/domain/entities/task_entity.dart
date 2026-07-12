@@ -12,6 +12,10 @@ class TaskEntity extends Equatable {
   final TaskCategory category;
   final DateTime? dueDate;
   final Duration? reminderOffset;
+  // Absolute reminder date+time, for the "Custom..." reminder mode. Only
+  // one of reminderOffset / customReminderDateTime should be set at once —
+  // callers are responsible for clearing the other when switching modes.
+  final DateTime? customReminderDateTime;
   final bool isCompleted;
   final DateTime createdAt;
 
@@ -23,6 +27,7 @@ class TaskEntity extends Equatable {
     this.category = TaskCategory.other,
     this.dueDate,
     this.reminderOffset = const Duration(days: 1),
+    this.customReminderDateTime,
     this.isCompleted = false,
     required this.createdAt,
   });
@@ -36,6 +41,8 @@ class TaskEntity extends Equatable {
     bool clearDueDate = false,
     Duration? reminderOffset,
     bool clearReminderOffset = false,
+    DateTime? customReminderDateTime,
+    bool clearCustomReminderDateTime = false,
     bool? isCompleted,
   }) {
     return TaskEntity(
@@ -47,6 +54,9 @@ class TaskEntity extends Equatable {
       dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
       reminderOffset:
           clearReminderOffset ? null : (reminderOffset ?? this.reminderOffset),
+      customReminderDateTime: clearCustomReminderDateTime
+          ? null
+          : (customReminderDateTime ?? this.customReminderDateTime),
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt,
     );
@@ -61,6 +71,7 @@ class TaskEntity extends Equatable {
         category,
         dueDate,
         reminderOffset,
+        customReminderDateTime,
         isCompleted,
         createdAt,
       ];
