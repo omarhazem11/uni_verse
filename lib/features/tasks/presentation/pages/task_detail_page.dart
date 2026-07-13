@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../notes/presentation/pages/note_editor_page.dart';
+import '../../../notes/presentation/providers/note_provider.dart';
+import '../../../notes/presentation/widgets/view_notes_button.dart';
 import '../../domain/entities/task_entity.dart';
 import '../providers/task_provider.dart';
 import '../utils/task_completion_celebration.dart';
@@ -33,6 +36,7 @@ class TaskDetailPage extends ConsumerWidget {
     }
 
     final shown = current ?? task;
+    final linkedNote = ref.watch(noteForTaskProvider(shown.id));
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -70,6 +74,14 @@ class TaskDetailPage extends ConsumerWidget {
             TaskDetailMetadataRow(task: shown),
             const SizedBox(height: 20),
             TaskDetailDueDateCard(task: shown),
+            if (linkedNote != null) ...[
+              const SizedBox(height: 20),
+              ViewNotesButton(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => NoteEditorPage(existingNote: linkedNote)),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             TaskDetailDescriptionCard(description: shown.description),
             const SizedBox(height: 28),

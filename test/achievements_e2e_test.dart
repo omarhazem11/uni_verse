@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uni_verse/core/errors/failures.dart';
 import 'package:uni_verse/features/achievements/data/models/user_progress_model.dart';
 import 'package:uni_verse/features/achievements/domain/badge_ids.dart';
@@ -17,6 +18,8 @@ import 'package:uni_verse/features/auth/domain/entities/user_entity.dart';
 import 'package:uni_verse/features/auth/presentation/providers/auth_provider.dart';
 import 'package:uni_verse/features/home/presentation/pages/dashboard_page.dart';
 import 'package:uni_verse/features/home/presentation/widgets/dashboard_bottom_nav.dart';
+import 'package:uni_verse/features/notes/presentation/pages/notes_page.dart';
+import 'package:uni_verse/features/notes/presentation/providers/note_provider.dart';
 import 'package:uni_verse/features/planner/domain/entities/planner_settings_entity.dart';
 import 'package:uni_verse/features/planner/domain/entities/schedule_item_entity.dart';
 import 'package:uni_verse/features/planner/domain/repositories/planner_repository.dart';
@@ -28,6 +31,7 @@ import 'package:uni_verse/features/tasks/presentation/pages/tasks_page.dart';
 import 'package:uni_verse/features/tasks/presentation/providers/task_provider.dart';
 import 'package:uni_verse/features/tasks/presentation/widgets/task_checkbox.dart';
 import 'fakes/fake_achievements_datasource.dart';
+import 'fakes/fake_note_datasource.dart';
 
 class FakeTaskRepository implements TaskRepository {
   final _tasks = <TaskEntity>[];
@@ -134,6 +138,10 @@ class FakePlannerRepository implements PlannerRepository {
 }
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('badgeRules', () {
     test('firstSteps unlocks after 1 completed task', () {
       const p = UserProgressEntity(tasksCompletedCount: 1);
@@ -261,6 +269,7 @@ void main() {
         overrides: [
           taskRepositoryProvider.overrideWithValue(taskRepo),
           achievementsRemoteDataSourceProvider.overrideWithValue(achievementsDataSource),
+          noteRemoteDataSourceProvider.overrideWithValue(FakeNoteRemoteDataSource()),
         ],
         child: const MaterialApp(home: TasksPage()),
       ),
@@ -291,6 +300,7 @@ void main() {
           tasksStreamProvider.overrideWith((ref) => Stream.value(<TaskEntity>[])),
           plannerRepositoryProvider.overrideWithValue(FakePlannerRepository()),
           achievementsRemoteDataSourceProvider.overrideWithValue(achievementsDataSource),
+          noteRemoteDataSourceProvider.overrideWithValue(FakeNoteRemoteDataSource()),
         ],
         child: const MaterialApp(home: DashboardPage()),
       ),
@@ -298,8 +308,13 @@ void main() {
     await tester.pumpAndSettle(); // initState records 'home'
 
     final bottomNav = find.byType(DashboardBottomNav);
+    // Notes nav item navigates away and back too, recording 'notes' along the way.
     await tester.tap(find.descendant(of: bottomNav, matching: find.text('Notes')));
     await tester.pumpAndSettle();
+    expect(find.byType(NotesPage), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     await tester.tap(find.descendant(of: bottomNav, matching: find.text('Analytics')));
     await tester.pumpAndSettle();
 

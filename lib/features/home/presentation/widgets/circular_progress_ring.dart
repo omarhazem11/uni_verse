@@ -9,6 +9,7 @@ class CircularProgressRing extends StatelessWidget {
   final double progress;
   final String? label;
   final double strokeWidth;
+  final Color color;
 
   const CircularProgressRing({
     super.key,
@@ -16,6 +17,7 @@ class CircularProgressRing extends StatelessWidget {
     required this.progress,
     this.label,
     this.strokeWidth = 4,
+    this.color = AppColors.violet,
   });
 
   @override
@@ -31,6 +33,7 @@ class CircularProgressRing extends StatelessWidget {
             painter: CircularProgressPainter(
               progress: progress,
               strokeWidth: strokeWidth,
+              color: color,
             ),
           ),
           if (label != null)
@@ -39,7 +42,7 @@ class CircularProgressRing extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: AppColors.violet,
+                color: color,
               ),
             ),
         ],
@@ -51,8 +54,13 @@ class CircularProgressRing extends StatelessWidget {
 class CircularProgressPainter extends CustomPainter {
   final double progress;
   final double strokeWidth;
+  final Color color;
 
-  CircularProgressPainter({required this.progress, required this.strokeWidth});
+  CircularProgressPainter({
+    required this.progress,
+    required this.strokeWidth,
+    this.color = AppColors.violet,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -66,7 +74,7 @@ class CircularProgressPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final progressPaint = Paint()
-      ..color = AppColors.violet
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -85,6 +93,7 @@ class CircularProgressPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CircularProgressPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.color != color;
   }
 }

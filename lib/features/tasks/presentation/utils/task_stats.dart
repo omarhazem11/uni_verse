@@ -12,3 +12,17 @@ extension TaskListStats on List<TaskEntity> {
     return where((t) => !t.isCompleted && t.dueDate != null && t.dueDate!.isBefore(cutoff)).length;
   }
 }
+
+/// The single most urgent incomplete task — soonest due date first, ties
+/// broken by priority (high wins). Tasks without a due date are excluded
+/// since there's nothing to rank them against.
+TaskEntity? getNextTask(List<TaskEntity> tasks) {
+  final incomplete = tasks.where((t) => !t.isCompleted && t.dueDate != null).toList();
+  if (incomplete.isEmpty) return null;
+  incomplete.sort((a, b) {
+    final dateCompare = a.dueDate!.compareTo(b.dueDate!);
+    if (dateCompare != 0) return dateCompare;
+    return b.priority.index.compareTo(a.priority.index);
+  });
+  return incomplete.first;
+}

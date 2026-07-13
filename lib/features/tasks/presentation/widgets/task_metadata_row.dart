@@ -11,8 +11,9 @@ const _monthNames = [
 
 class TaskMetadataRow extends StatelessWidget {
   final TaskEntity task;
+  final Widget? trailingChip;
 
-  const TaskMetadataRow({super.key, required this.task});
+  const TaskMetadataRow({super.key, required this.task, this.trailingChip});
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +27,7 @@ class TaskMetadataRow extends StatelessWidget {
         _CategoryChip(category: task.category),
         _PriorityDot(priority: task.priority),
         if (task.dueDate != null) _DueDateChip(date: task.dueDate!, overdue: overdue),
+        if (trailingChip != null) trailingChip!,
       ],
     );
   }

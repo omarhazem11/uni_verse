@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../notes/presentation/pages/note_editor_page.dart';
+import '../../../notes/presentation/providers/note_provider.dart';
+import '../../../notes/presentation/widgets/view_notes_chip.dart';
 import '../../domain/entities/task_entity.dart';
 import '../pages/task_detail_page.dart';
 import '../providers/task_provider.dart';
@@ -17,6 +20,8 @@ class TaskTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final linkedNote = ref.watch(noteForTaskProvider(task.id));
+
     return Dismissible(
       key: ValueKey(task.id),
       direction: DismissDirection.horizontal,
@@ -67,7 +72,16 @@ class TaskTile extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        TaskMetadataRow(task: task),
+                        TaskMetadataRow(
+                          task: task,
+                          trailingChip: linkedNote == null
+                              ? null
+                              : ViewNotesChip(
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => NoteEditorPage(existingNote: linkedNote)),
+                                  ),
+                                ),
+                        ),
                       ],
                     ),
                   ),

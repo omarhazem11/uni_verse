@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../achievements/presentation/pages/achievements_page.dart';
 import '../../../achievements/presentation/providers/achievements_provider.dart';
+import '../../../notes/presentation/pages/notes_page.dart';
+import '../../../notes/presentation/providers/note_provider.dart';
 import '../../../planner/presentation/pages/planner_page.dart';
 import '../../../planner/presentation/providers/planner_provider.dart';
 import '../../../tasks/domain/entities/task_entity.dart';
@@ -24,6 +26,8 @@ class DashboardTileGrid extends ConsumerWidget {
         ref.watch(badgesProvider).value?.where((b) => b.isUnlocked).length ?? 0;
     final badgesSubtitle =
         unlockedBadgeCount > 0 ? '$unlockedBadgeCount badges earned' : 'Earn your first badge 🏆';
+    final noteCount = ref.watch(notesStreamProvider).value?.length ?? 0;
+    final notesSubtitle = noteCount > 0 ? '$noteCount notes' : 'Start writing 📝';
 
     return Column(
       children: [
@@ -66,11 +70,11 @@ class DashboardTileGrid extends ConsumerWidget {
                 child: DashboardTile(
                   icon: Icons.description_outlined,
                   title: 'Notes',
-                  subtitle: 'Start writing 📝',
+                  subtitle: notesSubtitle,
                   background: AppColors.tileMintBg,
                   iconBackground: AppColors.tileMintIcon,
                   accent: AppColors.tileMintText,
-                  onTap: () {},
+                  onTap: () => _openNotes(context),
                 ),
               ),
               const SizedBox(width: 12),
@@ -113,5 +117,9 @@ class DashboardTileGrid extends ConsumerWidget {
 
   void _openAchievements(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AchievementsPage()));
+  }
+
+  void _openNotes(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotesPage()));
   }
 }

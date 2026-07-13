@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uni_verse/core/errors/failures.dart';
 import 'package:uni_verse/features/achievements/data/models/user_progress_model.dart';
 import 'package:uni_verse/features/achievements/domain/entities/user_progress_entity.dart';
@@ -9,6 +10,7 @@ import 'package:uni_verse/features/achievements/presentation/providers/achieveme
 import 'package:uni_verse/features/auth/domain/entities/user_entity.dart';
 import 'package:uni_verse/features/auth/presentation/providers/auth_provider.dart';
 import 'package:uni_verse/features/home/presentation/pages/dashboard_page.dart';
+import 'package:uni_verse/features/notes/presentation/providers/note_provider.dart';
 import 'package:uni_verse/features/planner/domain/entities/planner_settings_entity.dart';
 import 'package:uni_verse/features/planner/domain/entities/schedule_item_entity.dart';
 import 'package:uni_verse/features/planner/domain/repositories/planner_repository.dart';
@@ -16,6 +18,7 @@ import 'package:uni_verse/features/planner/presentation/providers/planner_provid
 import 'package:uni_verse/features/tasks/domain/entities/task_entity.dart';
 import 'package:uni_verse/features/tasks/presentation/providers/task_provider.dart';
 import 'fakes/fake_achievements_datasource.dart';
+import 'fakes/fake_note_datasource.dart';
 
 /// A minimal stand-in for PlannerRepository — every method that isn't
 /// exercised by DashboardPage/DashboardTileGrid just needs to not touch
@@ -97,6 +100,7 @@ Future<void> _pumpDashboard(
         tasksStreamProvider.overrideWith((ref) => Stream.value(tasks)),
         plannerRepositoryProvider.overrideWithValue(_FakePlannerRepository(hasItems: hasScheduleItems)),
         achievementsRemoteDataSourceProvider.overrideWithValue(achievementsDataSource),
+        noteRemoteDataSourceProvider.overrideWithValue(FakeNoteRemoteDataSource()),
       ],
       child: const MaterialApp(home: DashboardPage()),
     ),
@@ -107,6 +111,10 @@ Future<void> _pumpDashboard(
 TaskEntity _task() => TaskEntity(id: 't1', title: 'Do something', createdAt: DateTime.now());
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('no tasks, no schedule items: 1/4, add a task next', (tester) async {
     await _pumpDashboard(tester, tasks: [], hasScheduleItems: false);
     expect(find.text('1/4'), findsOneWidget);
@@ -130,9 +138,29 @@ void main() {
     expect(find.text('2/4'), findsOneWidget);
   });
 
-  testWidgets('task + schedule item + unlocked badge: 4/4, all set', (tester) async {
+  testWidgets('task + schedule item + unlocked badge: reaching 4/4 swaps to the next-task card', (tester) async {
     await _pumpDashboard(tester, tasks: [_task()], hasScheduleItems: true, hasBadge: true);
-    expect(find.text('4/4'), findsOneWidget);
-    expect(find.textContaining("you're all set"), findsOneWidget);
+    // Reaching 4/4 permanently replaces the getting-started card with the
+    // next-task card in the same frame — see dashboard_next_task_card_test.dart
+    // and the "permanently swaps" test below for the flag-persistence behavior.
+    expect(find.text('4/4'), findsNothing);
+    expect(find.textContaining('Getting started'), findsNothing);
+  });
+
+  testWidgets('reaching 4/4 permanently swaps to the next-task card, surviving a simulated restart',
+      (tester) async {
+    // First run: reach 4/4 for the first time — the getting-started card
+    // should be replaced and the flag persisted.
+    await _pumpDashboard(tester, tasks: [_task()], hasScheduleItems: true, hasBadge: true);
+    expect(find.text('4/4'), findsNothing);
+    expect(find.text('Nothing urgent right now'), findsOneWidget);
+
+    // Simulated restart: a brand new ProviderScope re-reads SharedPreferences
+    // from scratch. Even though the live steps regress to 1/4 (no badge, no
+    // schedule item this time), the persisted flag keeps the next-task card
+    // showing instead of resurrecting "Getting started".
+    await _pumpDashboard(tester, tasks: [], hasScheduleItems: false, hasBadge: false);
+    expect(find.textContaining('Getting started'), findsNothing);
+    expect(find.text('Nothing urgent right now'), findsOneWidget);
   });
 }

@@ -31,3 +31,7 @@ class PlannerFailure extends Failure {
 class AchievementsFailure extends Failure {
   const AchievementsFailure(super.message);
 }
+
+class NoteFailure extends Failure {
+  const NoteFailure(super.message);
+}

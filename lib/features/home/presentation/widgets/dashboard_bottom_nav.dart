@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../achievements/presentation/providers/achievements_provider.dart';
 import '../../../achievements/presentation/utils/celebrate_badges.dart';
+import '../../../notes/presentation/pages/notes_page.dart';
 import '../../../planner/presentation/pages/planner_page.dart';
 
 class DashboardBottomNav extends ConsumerWidget {
@@ -34,7 +35,12 @@ class DashboardBottomNav extends ConsumerWidget {
           _NavItem(
             icon: Icons.description_outlined,
             label: 'Notes',
-            onTap: () => _recordVisit(ref, context, 'notes'),
+            onTap: () async {
+              await _recordVisit(ref, context, 'notes');
+              if (context.mounted) {
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotesPage()));
+              }
+            },
           ),
           _NavItem(
             icon: Icons.bar_chart_rounded,

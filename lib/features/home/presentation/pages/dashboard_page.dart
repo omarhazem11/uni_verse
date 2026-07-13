@@ -9,9 +9,11 @@ import '../../../planner/presentation/providers/planner_provider.dart';
 import '../../../tasks/presentation/pages/tasks_page.dart';
 import '../../../tasks/presentation/providers/task_provider.dart';
 import '../../../tasks/presentation/utils/task_stats.dart';
+import '../providers/dashboard_onboarding_provider.dart';
 import '../widgets/dashboard_bottom_nav.dart';
 import '../widgets/dashboard_getting_started_card.dart';
 import '../widgets/dashboard_hero_card.dart';
+import '../widgets/dashboard_next_task_card.dart';
 import '../widgets/dashboard_tile_grid.dart';
 import '../widgets/dashboard_top_nav.dart';
 
@@ -61,6 +63,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         false;
     final stepsDone =
         1 + (tasks.isNotEmpty ? 1 : 0) + (hasScheduleItems ? 1 : 0) + (hasBadge ? 1 : 0);
+    const totalSteps = 4;
     final nextStepLabel = tasks.isEmpty
         ? 'add a task next'
         : !hasScheduleItems
@@ -68,6 +71,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             : !hasBadge
                 ? 'earn your first badge next'
                 : "you're all set! 🎉";
+
+    // Once the getting-started card has ever reached 4/4, the flag persists
+    // permanently and the card never reappears — even if a later condition
+    // (e.g. hasBadge) it depended on would otherwise re-derive as false.
+    final onboardingCardAsync = ref.watch(onboardingCardCompletedProvider);
+    final onboardingCardCompleted = onboardingCardAsync.value ?? false;
+    if (onboardingCardAsync.hasValue && !onboardingCardCompleted && stepsDone == totalSteps) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(onboardingCardCompletedProvider.notifier).markCompleted();
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -94,11 +108,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       child: DashboardTileGrid(),
                     ),
                     const SizedBox(height: 12),
-                    DashboardGettingStartedCard(
-                      stepsDone: stepsDone,
-                      totalSteps: 4,
-                      nextStepLabel: nextStepLabel,
-                    ),
+                    onboardingCardCompleted
+                        ? DashboardNextTaskCard(task: getNextTask(tasks))
+                        : DashboardGettingStartedCard(
+                            stepsDone: stepsDone,
+                            totalSteps: totalSteps,
+                            nextStepLabel: nextStepLabel,
+                          ),
                   ],
                 ),
               ),
