@@ -26,6 +26,15 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
 
   @override
   Future<String?> getUserType() async {
+    // Try the local Firestore cache first — instant for returning users who
+    // have had the doc loaded at least once. Falls through to a server read
+    // only on a genuine cache miss (first-ever login on this device).
+    try {
+      final cached = await _userDoc.get(const GetOptions(source: Source.cache));
+      if (cached.exists) return cached.data()?['userType'] as String?;
+    } catch (_) {
+      // Cache miss — doc not yet in local store.
+    }
     final snapshot = await _userDoc.get();
     return snapshot.data()?['userType'] as String?;
   }

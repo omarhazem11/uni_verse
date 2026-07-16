@@ -104,7 +104,11 @@ class _PostLoginRouterState extends ConsumerState<_PostLoginRouter> {
     );
     await NotificationService.requestPermission();
 
-    final tasks = await ref.read(tasksStreamProvider.future);
+    // Wait for the first task list from cache/server, but don't block
+    // notification setup indefinitely if the stream is slow to emit.
+    final tasks = await ref
+        .read(tasksStreamProvider.future)
+        .timeout(const Duration(seconds: 5), onTimeout: () => []);
     await NotificationService.rescheduleAllReminders(tasks);
   }
 
