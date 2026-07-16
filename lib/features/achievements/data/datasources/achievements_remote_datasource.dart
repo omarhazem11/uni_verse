@@ -47,18 +47,15 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
     return _doc.snapshots().map(UserProgressModel.fromFirestore);
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>> _getDoc() async {
-    try {
-      return await _doc.get(const GetOptions(source: Source.cache));
-    } catch (_) {
-      return _doc.get();
-    }
-  }
-
   @override
   Future<void> recordAppOpen() async {
-    final snapshot = await _getDoc();
-    final current = UserProgressModel.fromFirestore(snapshot);
+    UserProgressModel current;
+    try {
+      final snapshot = await _doc.get(const GetOptions(source: Source.cache));
+      current = UserProgressModel.fromFirestore(snapshot);
+    } catch (_) {
+      current = UserProgressModel.initial();
+    }
     final today = _dateOnly(DateTime.now());
 
     final update = computeStreakUpdate(
@@ -93,8 +90,13 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
 
   @override
   Future<void> recordPlannerItemAdded({required DateTime itemDate}) async {
-    final snapshot = await _getDoc();
-    final data = snapshot.data() ?? {};
+    Map<String, dynamic> data;
+    try {
+      final snapshot = await _doc.get(const GetOptions(source: Source.cache));
+      data = snapshot.data() ?? {};
+    } catch (_) {
+      data = {};
+    }
     final weekKey = _mondayOf(itemDate).toIso8601String().split('T').first;
     final dateKey = _dateOnly(itemDate).toIso8601String().split('T').first;
 
