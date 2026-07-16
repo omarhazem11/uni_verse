@@ -9,27 +9,44 @@ import 'tag_chip.dart';
 class NoteCard extends StatelessWidget {
   final NoteEntity note;
   final VoidCallback onTap;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onEnterSelectionMode;
+  final VoidCallback? onToggleSelect;
 
-  const NoteCard({super.key, required this.note, required this.onTap});
+  const NoteCard({
+    super.key,
+    required this.note,
+    required this.onTap,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onEnterSelectionMode,
+    this.onToggleSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
     final accent = colorFromHex(note.colorHex);
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTap: isSelectionMode ? onToggleSelect : onTap,
+      onLongPress: isSelectionMode ? null : onEnterSelectionMode,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? AppColors.violet.withValues(alpha: 0.08) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: AppColors.ink.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: AppColors.ink.withValues(alpha: isSelected ? 0.02 : 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
           ],
+          border: isSelected
+              ? Border.all(color: AppColors.violet.withValues(alpha: 0.4), width: 1.5)
+              : null,
         ),
-        // IntrinsicHeight lets the accent bar (which has no height of its
-        // own) stretch to match the text column's height — a plain Row with
-        // crossAxisAlignment.stretch can't size itself inside a ListView's
-        // unbounded height without it.
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -49,6 +66,7 @@ class NoteCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
@@ -62,9 +80,25 @@ class NoteCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (note.linkedTaskId != null) ...[
+                          if (note.linkedTaskId != null && !isSelectionMode) ...[
                             const SizedBox(width: 6),
                             const Icon(Icons.link_rounded, size: 15, color: AppColors.muted),
+                          ],
+                          if (isSelectionMode) ...[
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Checkbox(
+                                value: isSelected,
+                                onChanged: (_) => onToggleSelect?.call(),
+                                activeColor: AppColors.violet,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
                           ],
                         ],
                       ),

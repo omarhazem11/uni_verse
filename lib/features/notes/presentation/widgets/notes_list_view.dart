@@ -5,8 +5,21 @@ import 'note_card.dart';
 
 class NotesListView extends StatelessWidget {
   final List<NoteEntity> notes;
+  final bool isSelectionMode;
+  final Set<String> selectedIds;
+  final void Function(String id) onEnterSelectionMode;
+  final void Function(String id) onToggleSelect;
 
-  const NotesListView({super.key, required this.notes});
+  const NotesListView({
+    super.key,
+    required this.notes,
+    this.isSelectionMode = false,
+    this.selectedIds = const {},
+    this.onEnterSelectionMode = _noop,
+    this.onToggleSelect = _noop,
+  });
+
+  static void _noop(String _) {}
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +34,10 @@ class NotesListView extends StatelessWidget {
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => NoteEditorPage(existingNote: note)),
           ),
+          isSelectionMode: isSelectionMode,
+          isSelected: selectedIds.contains(note.id),
+          onEnterSelectionMode: () => onEnterSelectionMode(note.id),
+          onToggleSelect: () => onToggleSelect(note.id),
         );
       },
     );
