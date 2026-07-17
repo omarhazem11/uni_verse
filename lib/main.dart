@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +10,6 @@ import 'core/theme/app_colors.dart';
 import 'core/widgets/uni_verse_logo.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
-import 'features/home/presentation/pages/dashboard_page.dart';
 import 'features/home/presentation/pages/main_shell.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 import 'features/onboarding/domain/entities/user_type.dart';
@@ -45,6 +45,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.violet),
         useMaterial3: true,
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: const {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
       home: const AuthGate(),
     );
