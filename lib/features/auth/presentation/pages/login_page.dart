@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/uni_verse_logo.dart';
+import '../../../../main.dart';
 import '../providers/account_deletion_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/legal_links_text.dart';
@@ -30,6 +31,10 @@ class LoginPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
+
+    // Show a full-screen loading splash while Google sign-in is in progress
+    // (account picker is open or Firebase is processing the credential).
+    if (authState is AsyncLoading) return const SplashScreen(showSpinner: true);
 
     // Watched (not ref.listen) deliberately: the flag is set to true
     // *before* LoginPage ever mounts (deletion pops back to root, then

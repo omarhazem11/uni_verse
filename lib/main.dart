@@ -135,7 +135,7 @@ class _PostLoginRouterState extends ConsumerState<_PostLoginRouter> {
     final userTypeAsync = ref.watch(userTypeProvider);
 
     return userTypeAsync.when(
-      loading: () => const SplashScreen(),
+      loading: () => const SplashScreen(showSpinner: true),
       error: (_, __) => const OnboardingPage(),
       data: (userType) => switch (userType) {
         null => const OnboardingPage(),
@@ -147,7 +147,9 @@ class _PostLoginRouterState extends ConsumerState<_PostLoginRouter> {
 }
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, this.showSpinner = false});
+
+  final bool showSpinner;
 
   @override
   Widget build(BuildContext context) {
@@ -184,6 +186,17 @@ class SplashScreen extends StatelessWidget {
                     color: AppColors.muted,
                   ),
                 ),
+                if (showSpinner) ...[
+                  const SizedBox(height: 24),
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFFA08FFF),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
