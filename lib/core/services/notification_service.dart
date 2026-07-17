@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -71,9 +72,13 @@ class NotificationService {
   }
 
   static Future<void> requestPermission() async {
-    await _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
+    // Android 12 (API 31–32): SCHEDULE_EXACT_ALARM can be revoked by the
+    // user in Settings → Apps → Special access → Alarms & reminders.
+    // Requesting it here prompts them to re-enable it if needed.
+    await android?.requestExactAlarmsPermission();
     await _plugin
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
@@ -115,17 +120,34 @@ class NotificationService {
     final title = '⏰ ${task.title}';
     final body = task.dueDate != null ? 'Due ${_formatDue(task.dueDate!)}' : 'Task reminder';
 
-    await _plugin.zonedSchedule(
-      _notifId(task.id),
-      title,
-      body,
-      tz.TZDateTime.from(reminderTime.toUtc(), tz.UTC),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: task.id,
-    );
+    final tzTime = tz.TZDateTime.from(reminderTime.toUtc(), tz.UTC);
+    try {
+      await _plugin.zonedSchedule(
+        _notifId(task.id),
+        title,
+        body,
+        tzTime,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: task.id,
+      );
+    } on PlatformException {
+      // SCHEDULE_EXACT_ALARM permission revoked on Android 12 — fall back
+      // to inexact so the notification still fires (slightly delayed).
+      await _plugin.zonedSchedule(
+        _notifId(task.id),
+        title,
+        body,
+        tzTime,
+        details,
+        androidScheduleMode: AndroidScheduleMode.inexact,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: task.id,
+      );
+    }
 
     if (writeToInbox) {
       final record = NotificationEntity(
@@ -147,7 +169,11 @@ class NotificationService {
 
   // Reschedules OS notifications only — does not write new inbox records so
   // existing Firestore entries from task creation/update are not duplicated.
+  // Skips entirely if tasks is empty — an empty list most likely means the
+  // stream timed out (offline startup), and cancelling all pending alarms
+  // would silently wipe reminders that are still valid.
   static Future<void> rescheduleAllReminders(List<TaskEntity> tasks) async {
+    if (tasks.isEmpty) return;
     await _plugin.cancelAll();
     for (final task in tasks) {
       if (!task.isCompleted) {
