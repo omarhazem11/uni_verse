@@ -15,6 +15,7 @@ import 'task_metadata_row.dart';
 
 class TaskTile extends ConsumerWidget {
   final TaskEntity task;
+  final bool isOverdue;
   final bool isSelectionMode;
   final bool isSelected;
   final VoidCallback? onEnterSelectionMode;
@@ -23,6 +24,7 @@ class TaskTile extends ConsumerWidget {
   const TaskTile({
     super.key,
     required this.task,
+    this.isOverdue = false,
     this.isSelectionMode = false,
     this.isSelected = false,
     this.onEnterSelectionMode,
@@ -48,13 +50,44 @@ class TaskTile extends ConsumerWidget {
   }
 
   Widget _buildTile(BuildContext context, WidgetRef ref, dynamic linkedNote) {
+    Color tileColor;
+    if (isSelected) {
+      tileColor = AppColors.violet.withValues(alpha: 0.08);
+    } else if (isOverdue) {
+      tileColor = AppColors.coral.withValues(alpha: 0.05);
+    } else {
+      tileColor = Colors.white;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
+      decoration: isOverdue
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border(
+                left: BorderSide(color: AppColors.coral.withValues(alpha: 0.7), width: 3),
+              ),
+            )
+          : null,
       child: Material(
-        color: isSelected ? AppColors.violet.withValues(alpha: 0.08) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: tileColor,
+        borderRadius: isOverdue
+            ? const BorderRadius.only(
+                topRight: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+                topLeft: Radius.circular(13),
+                bottomLeft: Radius.circular(13),
+              )
+            : BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: isOverdue
+              ? const BorderRadius.only(
+                  topRight: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                  topLeft: Radius.circular(13),
+                  bottomLeft: Radius.circular(13),
+                )
+              : BorderRadius.circular(16),
           onTap: isSelectionMode
               ? onToggleSelect
               : () => Navigator.of(context).push(
