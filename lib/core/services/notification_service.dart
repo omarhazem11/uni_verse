@@ -126,20 +126,22 @@ class NotificationService {
 
     final tzTime = tz.TZDateTime.from(reminderTime.toUtc(), tz.UTC);
     try {
+      // alarmClock uses AlarmManager.setAlarmClock() — exempt from Doze mode
+      // and manufacturer battery optimizers (Xiaomi, Samsung, etc.), unlike
+      // exactAllowWhileIdle which can be delayed or cancelled on physical devices.
       await _plugin.zonedSchedule(
         _notifId(task.id),
         title,
         body,
         tzTime,
         details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.alarmClock,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         payload: task.id,
       );
     } on PlatformException {
-      // SCHEDULE_EXACT_ALARM permission revoked on Android 12 — fall back
-      // to inexact so the notification still fires (slightly delayed).
+      // Fall back to inexact if alarm scheduling fails (e.g. permission denied).
       await _plugin.zonedSchedule(
         _notifId(task.id),
         title,
