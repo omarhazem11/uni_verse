@@ -34,10 +34,7 @@ class TaskMetadataRow extends StatelessWidget {
 
   bool _isOverdue(TaskEntity task) {
     if (task.dueDate == null || task.isCompleted) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final due = DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day);
-    return due.isBefore(today);
+    return task.dueDate!.isBefore(DateTime.now());
   }
 }
 

@@ -24,10 +24,7 @@ class TaskListView extends StatelessWidget {
 
   static bool _isOverdue(TaskEntity t) {
     if (t.dueDate == null || t.isCompleted) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final due = DateTime(t.dueDate!.year, t.dueDate!.month, t.dueDate!.day);
-    return due.isBefore(today);
+    return t.dueDate!.isBefore(DateTime.now());
   }
 
   @override
