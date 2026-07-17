@@ -20,9 +20,8 @@ class TaskUrgency {
 /// countdown.
 TaskUrgency computeTaskUrgency(DateTime dueDate, DateTime now) {
   final diff = dueDate.difference(now);
-  final hoursRemaining = diff.inHours;
 
-  if (hoursRemaining < 0) {
+  if (diff.inMinutes < 0) {
     return const TaskUrgency(
       fillPercent: 1.0,
       color: AppColors.coral,
@@ -30,6 +29,8 @@ TaskUrgency computeTaskUrgency(DateTime dueDate, DateTime now) {
       isOverdue: true,
     );
   }
+
+  final hoursRemaining = diff.inHours;
   if (hoursRemaining >= 72) {
     return TaskUrgency(
       fillPercent: 0.25,
