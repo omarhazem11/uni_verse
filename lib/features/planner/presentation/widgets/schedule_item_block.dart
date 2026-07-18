@@ -6,6 +6,7 @@ import '../../domain/entities/schedule_item_entity.dart';
 import '../providers/planner_provider.dart';
 import '../utils/schedule_color.dart';
 import 'add_schedule_item_sheet.dart';
+import 'block_preview_card.dart';
 
 class ScheduleItemBlock extends ConsumerWidget {
   final ScheduleItemEntity item;
@@ -17,28 +18,63 @@ class ScheduleItemBlock extends ConsumerWidget {
     final color = colorFromHex(item.colorHex);
 
     return GestureDetector(
-      onTap: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => AddScheduleItemSheet(existingItem: item),
+      onTap: () => showBlockPreview(
+        context,
+        emoji: item.emoji,
+        title: item.title,
+        color: color,
+        subtitle: '${formatTimeOfDay(item.startTime)} – ${formatTimeOfDay(item.endTime)}',
+        onOpen: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => AddScheduleItemSheet(existingItem: item),
+        ),
       ),
       onLongPress: () => _confirmDelete(context, ref),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final short = constraints.maxHeight < 30;
+          // Horizontal padding is 10 on each side.
+          final availableWidth = constraints.maxWidth - 20;
+
+          final style = GoogleFonts.nunito(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          );
+
+          // Measure whether the full title fits in one line.
+          final tp = TextPainter(
+            text: TextSpan(text: '${item.emoji} ${item.title}', style: style),
+            maxLines: 1,
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: availableWidth);
+
+          final fits = !tp.didExceedMaxLines;
+
+          if (!fits) {
+            // Title doesn't fit — emoji pinned to top-left, rest solid color.
+            return Container(
+              width: double.infinity,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.all(4),
+              alignment: Alignment.topLeft,
+              child: Text(item.emoji, style: const TextStyle(fontSize: 12)),
+            );
+          }
+
           return Container(
             width: double.infinity,
             clipBehavior: Clip.hardEdge,
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: short ? 3 : 6),
             decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
             alignment: Alignment.topLeft,
-            child: Text(
-              '${item.emoji} ${item.title}',
-              maxLines: short ? 1 : 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
-            ),
+            child: Text('${item.emoji} ${item.title}', style: style),
           );
         },
       ),

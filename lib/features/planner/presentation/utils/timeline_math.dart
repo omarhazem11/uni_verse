@@ -30,22 +30,21 @@ const double taskBlockHeight = 30 * pixelsPerMinute;
 // Overlap layout
 // ---------------------------------------------------------------------------
 
-/// Left/right offsets (in pixels from the Stack edges) for a single item
-/// within the content area. Both values are distances from the respective
-/// edges, matching how Positioned.left / Positioned.right work.
-typedef BlockLayout = ({double left, double right});
+/// Horizontal position and width for a single item in the timeline Stack.
+typedef BlockLayout = ({double left, double width});
 
 /// Assigns side-by-side columns to items that overlap in time so no event
 /// is hidden behind another (Google Calendar style).
 ///
-/// [items] is a list of (id, start, end) records — supply tasks and schedule
-/// items separately and call this twice, or combine them.
 /// [contentLeft] is the x-offset where the event area begins (label width + gap).
-/// [contentWidth] is the available width for events.
+/// [contentWidth] is the default available width; columns are divided equally.
+/// [minColumnWidth] — when > 0, no column is narrower than this value; the
+/// Stack grows wider than [contentWidth] when needed (enables horizontal scroll).
 Map<String, BlockLayout> computeBlockLayouts({
   required List<({String id, DateTime start, DateTime end})> items,
   required double contentLeft,
   required double contentWidth,
+  double minColumnWidth = 0,
 }) {
   if (items.isEmpty) return {};
 
@@ -96,14 +95,14 @@ Map<String, BlockLayout> computeBlockLayouts({
     }
 
     final totalCols = colEnds.length;
-    final slotW = contentWidth / totalCols;
+    final naturalSlot = contentWidth / totalCols;
+    final slotW = (minColumnWidth > 0 && naturalSlot < minColumnWidth)
+        ? minColumnWidth
+        : naturalSlot;
 
     for (final item in group) {
       final col = itemCol[item.id]!;
-      result[item.id] = (
-        left: contentLeft + col * slotW,
-        right: (totalCols - col - 1) * slotW,
-      );
+      result[item.id] = (left: contentLeft + col * slotW, width: slotW);
     }
   }
 

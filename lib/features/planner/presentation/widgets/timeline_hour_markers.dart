@@ -8,11 +8,17 @@ const timelineLabelWidth = 48.0;
 class TimelineHourMarkers extends StatelessWidget {
   final int dayStartMinutes;
   final int dayEndMinutes;
+  /// When false, labels are suppressed (use in the blocks-only Stack).
+  final bool showLabels;
+  /// When false, dividers are suppressed (use in the labels-only column).
+  final bool showDividers;
 
   const TimelineHourMarkers({
     super.key,
     required this.dayStartMinutes,
     required this.dayEndMinutes,
+    this.showLabels = true,
+    this.showDividers = true,
   });
 
   @override
@@ -25,21 +31,26 @@ class TimelineHourMarkers extends StatelessWidget {
       children: hours.expand((hour) {
         final top = (hour * 60 - dayStartMinutes) * pixelsPerMinute;
         return [
-          Positioned(
-            top: top + 3,
-            left: 0,
-            width: timelineLabelWidth,
-            child: Text(
-              _hourLabel(hour),
-              style: GoogleFonts.inter(fontSize: 11, color: AppColors.muted),
+          if (showLabels)
+            Positioned(
+              top: top + 3,
+              left: 0,
+              width: timelineLabelWidth,
+              child: Text(
+                _hourLabel(hour),
+                style: GoogleFonts.inter(fontSize: 11, color: AppColors.muted),
+              ),
             ),
-          ),
-          Positioned(
-            top: top,
-            left: timelineLabelWidth + 8,
-            right: 0,
-            child: Container(height: 1, color: AppColors.divider),
-          ),
+          if (showDividers)
+            Positioned(
+              top: top,
+              // When labels are shown in the same stack, offset the divider
+              // past the label column. When labels are in a separate fixed
+              // column, the divider starts at the left edge (0).
+              left: showLabels ? timelineLabelWidth + 8 : 0,
+              right: 0,
+              child: Container(height: 1, color: AppColors.divider),
+            ),
         ];
       }).toList(),
     );

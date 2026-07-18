@@ -49,7 +49,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
 
     final result = await _firebaseAuth.signInWithCredential(credential);
-    return UserModel.fromFirebaseUser(result.user!);
+    final user = result.user!;
+
+    // Write a lightweight profile so the admin panel can list users by
+    // name/email/join-date.  SetOptions(merge:true) ensures this never
+    // overwrites fields written by other parts of the app (e.g. userType).
+    await _firestore.collection('users').doc(user.uid).set(
+      {
+        'email': user.email,
+        'displayName': user.displayName,
+        // Only write createdAt once — if the field already exists, merge
+        // means it is left untouched on subsequent sign-ins.
+        if (result.additionalUserInfo?.isNewUser == true)
+          'createdAt': DateTime.now().toIso8601String(),
+      },
+      SetOptions(merge: true),
+    );
+
+    return UserModel.fromFirebaseUser(user);
   }
 
   @override
