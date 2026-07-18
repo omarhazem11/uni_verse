@@ -66,8 +66,6 @@ class NotificationService {
           importance: Importance.high,
         ));
 
-    debugPrint('[NotifService] initialized — channel "$_channelId" ensured');
-
     final launchDetails = await _plugin.getNotificationAppLaunchDetails();
     if (launchDetails?.didNotificationLaunchApp == true) {
       final payload = launchDetails!.notificationResponse?.payload;
@@ -93,12 +91,9 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
 
-    // Check whether exact alarms are currently allowed before requesting, so
-    // we only show the settings screen when it's actually needed.
-    final canExact = await _canScheduleExactAlarms();
-    debugPrint('[NotifService] requestPermission: canScheduleExactAlarms=$canExact');
-    if (!canExact) {
-      // Opens Settings → Apps → Special access → Alarms & reminders.
+    // Only prompt for exact-alarm settings if the permission is actually missing.
+    // Opens Settings → Apps → Special access → Alarms & reminders when needed.
+    if (!await _canScheduleExactAlarms()) {
       await android?.requestExactAlarmsPermission();
     }
 
@@ -116,30 +111,13 @@ class NotificationService {
     bool writeToInbox = true,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    if (!(prefs.getBool('notifications_enabled') ?? true)) {
-      debugPrint('[NotifService] scheduling skipped — notifications disabled in prefs');
-      return;
-    }
+    if (!(prefs.getBool('notifications_enabled') ?? true)) return;
 
     final reminderTime = _reminderTime(task);
-    if (reminderTime == null) {
-      debugPrint('[NotifService] ${task.id}: no reminder time configured');
-      return;
-    }
-    if (reminderTime.isBefore(DateTime.now())) {
-      debugPrint('[NotifService] ${task.id}: reminder time $reminderTime is in the past — skipping');
-      return;
-    }
+    if (reminderTime == null || reminderTime.isBefore(DateTime.now())) return;
 
     final canExact = await _canScheduleExactAlarms();
     final tzTime = tz.TZDateTime.from(reminderTime.toUtc(), tz.UTC);
-
-    debugPrint(
-      '[NotifService] scheduling "${task.title}" (${task.id})\n'
-      '  reminderTime (local): $reminderTime\n'
-      '  tzTime (UTC):         $tzTime\n'
-      '  canScheduleExact:     $canExact',
-    );
 
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -172,13 +150,10 @@ class NotificationService {
               UILocalNotificationDateInterpretation.absoluteTime,
           payload: task.id,
         );
-        debugPrint('[NotifService] ✓ scheduled with alarmClock mode');
-      } catch (e, st) {
-        debugPrint('[NotifService] ✗ alarmClock failed: $e\n$st');
+      } catch (_) {
         await _scheduleInexact(task.id, title, body, tzTime, details);
       }
     } else {
-      debugPrint('[NotifService] exact alarms not allowed — using inexact fallback');
       await _scheduleInexact(task.id, title, body, tzTime, details);
     }
 
@@ -215,10 +190,7 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         payload: taskId,
       );
-      debugPrint('[NotifService] ✓ scheduled with inexact mode');
-    } catch (e, st) {
-      debugPrint('[NotifService] ✗ inexact also failed: $e\n$st');
-    }
+    } catch (_) {}
   }
 
   static Future<void> cancelTaskReminder(String taskId) async {
@@ -231,12 +203,8 @@ class NotificationService {
   // stream timed out (offline startup), and cancelling all pending alarms
   // would silently wipe reminders that are still valid.
   static Future<void> rescheduleAllReminders(List<TaskEntity> tasks) async {
-    if (tasks.isEmpty) {
-      debugPrint('[NotifService] rescheduleAllReminders: skipped — empty task list');
-      return;
-    }
+    if (tasks.isEmpty) return;
     await _plugin.cancelAll();
-    debugPrint('[NotifService] rescheduleAllReminders: rescheduling ${tasks.length} tasks');
     for (final task in tasks) {
       if (!task.isCompleted) {
         await scheduleTaskReminder(task, writeToInbox: false);
@@ -248,11 +216,13 @@ class NotificationService {
   // Helpers
   // ---------------------------------------------------------------------------
 
+  // Calls AlarmManager.canScheduleExactAlarms() via MethodChannel (API 31+).
+  // Returns true unconditionally on older Android where exact alarms are
+  // always permitted.
   static Future<bool> _canScheduleExactAlarms() async {
     try {
       return await _alarmChannel.invokeMethod<bool>('canScheduleExactAlarms') ?? true;
-    } on PlatformException catch (e) {
-      debugPrint('[NotifService] _canScheduleExactAlarms channel error: $e — assuming true');
+    } on PlatformException {
       return true;
     }
   }
