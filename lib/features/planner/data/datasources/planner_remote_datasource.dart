@@ -88,22 +88,48 @@ class PlannerRemoteDataSourceImpl implements PlannerRemoteDataSource {
     if (sourceItems.isEmpty) return;
 
     final batch = _firestore.batch();
+
     for (final targetDate in targetDates) {
       final dayOffset = _startOfDay(targetDate).difference(_startOfDay(sourceDate));
+
+      // Fetch items already on the target date so we can skip conflicting ones.
+      List<ScheduleItemModel> existingItems = [];
+      try {
+        final targetSnapshot = await _itemsRef
+            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(_startOfDay(targetDate)))
+            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(_endOfDay(targetDate)))
+            .get(const GetOptions(source: Source.cache));
+        existingItems = targetSnapshot.docs.map(ScheduleItemModel.fromFirestore).toList();
+      } catch (_) {
+        // No cache for this date — assume empty and copy everything.
+      }
+
       for (final item in sourceItems) {
-        final newId = const Uuid().v4();
-        final newItem = ScheduleItemModel(
-          id: newId,
-          title: item.title,
-          description: item.description,
-          date: _startOfDay(targetDate),
-          startTime: item.startTime.add(dayOffset),
-          endTime: item.endTime.add(dayOffset),
-          colorHex: item.colorHex,
-          emoji: item.emoji,
-          createdAt: DateTime.now(),
+        final newStart = item.startTime.add(dayOffset);
+        final newEnd = item.endTime.add(dayOffset);
+
+        // Skip if the new item's time range overlaps any existing item on the
+        // target date — prevents stacking duplicates on top of each other.
+        final conflicts = existingItems.any(
+          (e) => newStart.isBefore(e.endTime) && e.startTime.isBefore(newEnd),
         );
-        batch.set(_itemsRef.doc(newId), newItem.toFirestore());
+        if (conflicts) continue;
+
+        final newId = const Uuid().v4();
+        batch.set(
+          _itemsRef.doc(newId),
+          ScheduleItemModel(
+            id: newId,
+            title: item.title,
+            description: item.description,
+            date: _startOfDay(targetDate),
+            startTime: newStart,
+            endTime: newEnd,
+            colorHex: item.colorHex,
+            emoji: item.emoji,
+            createdAt: DateTime.now(),
+          ).toFirestore(),
+        );
       }
     }
     // Don't await — writes to local cache synchronously, server sync happens
