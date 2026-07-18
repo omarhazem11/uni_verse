@@ -45,7 +45,7 @@ class _AddScheduleItemSheetState extends ConsumerState<AddScheduleItemSheet> {
     _startTime = existing?.startTime ?? DateTime(_date.year, _date.month, _date.day, 9);
     _endTime = existing?.endTime ?? DateTime(_date.year, _date.month, _date.day, 10);
     _colorHex = existing?.colorHex ?? plannerColorPalette.first;
-    _emoji = existing?.emoji ?? scheduleEmojiOptions.first;
+    _emoji = existing?.emoji ?? defaultScheduleEmoji;
     _titleController.addListener(() => setState(() {}));
   }
 
