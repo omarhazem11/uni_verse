@@ -8,14 +8,14 @@ class TermsPage extends StatelessWidget {
   const TermsPage({super.key});
   @override
   Widget build(BuildContext context) =>
-      _LegalPage(title: 'Terms of Service', lastUpdated: 'July 2026', sections: _termsSections);
+      const _LegalPage(title: 'Terms of Service', lastUpdated: 'July 2026', sections: _termsSections);
 }
 
 class PrivacyPage extends StatelessWidget {
   const PrivacyPage({super.key});
   @override
   Widget build(BuildContext context) =>
-      _LegalPage(title: 'Privacy Policy', lastUpdated: 'July 2026', sections: _privacySections);
+      const _LegalPage(title: 'Privacy Policy', lastUpdated: 'July 2026', sections: _privacySections);
 }
 
 // ─── Shared page shell ─────────────────────────────────────────────────────

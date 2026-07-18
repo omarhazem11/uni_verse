@@ -45,8 +45,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.violet),
         useMaterial3: true,
-        pageTransitionsTheme: PageTransitionsTheme(
-          builders: const {
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
             TargetPlatform.android: CupertinoPageTransitionsBuilder(),
             TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
           },
