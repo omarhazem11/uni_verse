@@ -26,7 +26,7 @@ class TimelineHourMarkers extends StatelessWidget {
         final top = (hour * 60 - dayStartMinutes) * pixelsPerMinute;
         return [
           Positioned(
-            top: top - 7,
+            top: top + 3,
             left: 0,
             width: timelineLabelWidth,
             child: Text(

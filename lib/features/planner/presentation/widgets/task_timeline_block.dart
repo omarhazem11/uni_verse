@@ -21,40 +21,46 @@ class TaskTimelineBlock extends StatelessWidget {
       ),
       child: Opacity(
         opacity: task.isCompleted ? 0.6 : 1,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: task.priority.color,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 18),
-                child: Text(
-                  '${task.category.emoji} ${task.title}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    decoration: task.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final short = constraints.maxHeight < 30;
+            return Container(
+              width: double.infinity,
+              clipBehavior: Clip.hardEdge,
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: short ? 3 : 6),
+              decoration: BoxDecoration(
+                color: task.priority.color,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 18),
+                    child: Text(
+                      '${task.category.emoji} ${task.title}',
+                      maxLines: short ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        decoration: task.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Icon(
+                      task.isCompleted ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Icon(
-                  task.isCompleted ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                  size: 14,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -24,17 +24,23 @@ class ScheduleItemBlock extends ConsumerWidget {
         builder: (_) => AddScheduleItemSheet(existingItem: item),
       ),
       onLongPress: () => _confirmDelete(context, ref),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
-        alignment: Alignment.topLeft,
-        child: Text(
-          '${item.emoji} ${item.title}',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final short = constraints.maxHeight < 30;
+          return Container(
+            width: double.infinity,
+            clipBehavior: Clip.hardEdge,
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: short ? 3 : 6),
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
+            alignment: Alignment.topLeft,
+            child: Text(
+              '${item.emoji} ${item.title}',
+              maxLines: short ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+            ),
+          );
+        },
       ),
     );
   }
