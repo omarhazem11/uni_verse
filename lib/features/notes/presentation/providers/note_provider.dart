@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/note_remote_datasource.dart';
 import '../../data/repositories/note_repository_impl.dart';
+import '../../domain/entities/drawing_stroke_entity.dart';
 import '../../domain/entities/note_entity.dart';
 import '../../domain/repositories/note_repository.dart';
 
@@ -61,6 +62,7 @@ class NoteActionsNotifier extends StateNotifier<AsyncValue<void>> {
     List<String> tags = const [],
     String? linkedTaskId,
     required String colorHex,
+    List<DrawingStrokeEntity> strokes = const [],
   }) {
     final now = DateTime.now();
     final note = NoteEntity(
@@ -70,6 +72,7 @@ class NoteActionsNotifier extends StateNotifier<AsyncValue<void>> {
       tags: tags,
       linkedTaskId: linkedTaskId,
       colorHex: colorHex,
+      strokes: strokes,
       createdAt: now,
       updatedAt: now,
     );

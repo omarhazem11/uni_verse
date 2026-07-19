@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../planner/presentation/utils/schedule_color.dart';
-import '../../../planner/presentation/widgets/schedule_color_picker.dart';
+import '../../domain/entities/drawing_stroke_entity.dart';
 import '../../domain/entities/note_entity.dart';
 import '../providers/note_provider.dart';
+import '../widgets/drawing_canvas.dart';
 import '../widgets/note_delete_dialog.dart';
-import '../widgets/note_editor_fields.dart';
-import '../widgets/note_editor_link_row.dart';
-import '../widgets/note_editor_tag_section.dart';
+import '../widgets/note_editor_app_bar.dart';
+import '../widgets/note_editor_body.dart';
+import '../widgets/note_editor_save.dart';
+import '../widgets/note_editor_tab_switcher.dart';
 
 /// Full screen (not a sheet) since notes can run long. Auto-saves on any way
 /// out — hardware back, swipe-back, or the app bar's back/save controls all
@@ -30,7 +31,17 @@ class _NoteEditorPageState extends ConsumerState<NoteEditorPage> {
   late List<String> _tags = List.of(widget.existingNote?.tags ?? const []);
   late String _colorHex = widget.existingNote?.colorHex ?? plannerColorPalette[1];
   late String? _linkedTaskId;
+  late List<DrawingStrokeEntity> _strokes = List.of(widget.existingNote?.strokes ?? const []);
   bool _exiting = false;
+
+  final _canvasKey = GlobalKey<DrawingCanvasState>();
+  NoteEditorTab _tab = NoteEditorTab.text;
+  CanvasTool _canvasTool = CanvasTool.pen;
+  String _canvasColorHex = plannerColorPalette[1];
+  double _canvasWidth = 6.0;
+  bool _canUndo = false;
+  bool _canRedo = false;
+  double _canvasZoom = 1.0;
 
   @override
   void initState() {
@@ -41,7 +52,9 @@ class _NoteEditorPageState extends ConsumerState<NoteEditorPage> {
   bool get _isEditing => widget.existingNote != null;
 
   bool get _hasContent =>
-      _titleController.text.trim().isNotEmpty || _bodyController.text.trim().isNotEmpty;
+      _titleController.text.trim().isNotEmpty ||
+      _bodyController.text.trim().isNotEmpty ||
+      _strokes.isNotEmpty;
 
   // Single exit path for all routes out (done button, system back, swipe).
   // Pops immediately — Firebase offline cache commits locally before the
@@ -57,24 +70,23 @@ class _NoteEditorPageState extends ConsumerState<NoteEditorPage> {
     final tags = List<String>.of(_tags);
     final colorHex = _colorHex;
     final linkedTaskId = _linkedTaskId;
+    final strokes = List<DrawingStrokeEntity>.of(_strokes);
     final existingNote = widget.existingNote;
     final notifier = ref.read(noteActionsProvider.notifier);
 
     Navigator.of(context).pop();
 
     if (!hasContent) return;
-    if (existingNote == null) {
-      notifier.addNote(title: title, body: body, tags: tags, linkedTaskId: linkedTaskId, colorHex: colorHex);
-    } else {
-      notifier.updateNote(existingNote.copyWith(
-        title: title,
-        body: body,
-        tags: tags,
-        linkedTaskId: linkedTaskId,
-        clearLinkedTaskId: linkedTaskId == null,
-        colorHex: colorHex,
-      ));
-    }
+    saveNoteFromEditor(
+      notifier: notifier,
+      existingNote: existingNote,
+      title: title,
+      body: body,
+      tags: tags,
+      linkedTaskId: linkedTaskId,
+      colorHex: colorHex,
+      strokes: strokes,
+    );
   }
 
   @override
@@ -88,53 +100,39 @@ class _NoteEditorPageState extends ConsumerState<NoteEditorPage> {
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: AppColors.ink),
-          title: Text(
-            _isEditing ? 'Edit Note' : 'New Note',
-            style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.ink),
-          ),
-          actions: [
-            if (_isEditing)
-              IconButton(
-                onPressed: saving ? null : _delete,
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.coral),
-              ),
-            IconButton(
-              key: const Key('noteEditorSaveButton'),
-              onPressed: saving ? null : _handleExit,
-              icon: const Icon(Icons.check_rounded, color: AppColors.violet),
-            ),
-          ],
+        appBar: NoteEditorAppBar(
+          isEditing: _isEditing,
+          saving: saving,
+          onDelete: _delete,
+          onSave: _handleExit,
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: NoteEditorFields(titleController: _titleController, bodyController: _bodyController),
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: AppColors.divider)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  NoteEditorTagSection(tags: _tags, onChanged: (tags) => setState(() => _tags = tags)),
-                  const SizedBox(height: 14),
-                  ScheduleColorPicker(selectedHex: _colorHex, onChanged: (hex) => setState(() => _colorHex = hex)),
-                  const SizedBox(height: 14),
-                  NoteEditorLinkRow(
-                    linkedTaskId: _linkedTaskId,
-                    onChanged: (id) => setState(() => _linkedTaskId = id),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        body: NoteEditorBody(
+          tab: _tab,
+          onTabChanged: (t) => setState(() => _tab = t),
+          titleController: _titleController,
+          bodyController: _bodyController,
+          tags: _tags,
+          onTagsChanged: (tags) => setState(() => _tags = tags),
+          colorHex: _colorHex,
+          onColorChanged: (hex) => setState(() => _colorHex = hex),
+          linkedTaskId: _linkedTaskId,
+          onLinkedTaskChanged: (id) => setState(() => _linkedTaskId = id),
+          canvasKey: _canvasKey,
+          strokes: _strokes,
+          onStrokesChanged: (strokes) => _strokes = strokes,
+          canvasTool: _canvasTool,
+          onCanvasToolChanged: (t) => setState(() => _canvasTool = t),
+          canvasColorHex: _canvasColorHex,
+          onCanvasColorChanged: (c) => setState(() => _canvasColorHex = c),
+          canvasWidth: _canvasWidth,
+          onCanvasWidthChanged: (w) => setState(() => _canvasWidth = w),
+          canUndo: _canUndo,
+          canRedo: _canRedo,
+          onHistoryChanged: ({required canUndo, required canRedo}) {
+            setState(() { _canUndo = canUndo; _canRedo = canRedo; });
+          },
+          canvasZoom: _canvasZoom,
+          onCanvasZoomChanged: (z) => setState(() => _canvasZoom = z),
         ),
       ),
     );
@@ -149,5 +147,4 @@ class _NoteEditorPageState extends ConsumerState<NoteEditorPage> {
     // and re-create the note we just deleted.
     if (mounted) Navigator.of(context).pop();
   }
-
 }

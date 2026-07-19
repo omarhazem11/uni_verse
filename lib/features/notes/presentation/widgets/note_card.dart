@@ -84,6 +84,10 @@ class NoteCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             const Icon(Icons.link_rounded, size: 15, color: AppColors.muted),
                           ],
+                          if (note.strokes.isNotEmpty && !isSelectionMode) ...[
+                            const SizedBox(width: 6),
+                            const Icon(Icons.draw_rounded, size: 15, color: AppColors.muted),
+                          ],
                           if (isSelectionMode) ...[
                             const SizedBox(width: 8),
                             SizedBox(

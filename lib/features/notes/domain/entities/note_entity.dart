@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'drawing_stroke_entity.dart';
 
 class NoteEntity extends Equatable {
   final String id;
@@ -7,6 +8,7 @@ class NoteEntity extends Equatable {
   final List<String> tags;
   final String? linkedTaskId;
   final String colorHex;
+  final List<DrawingStrokeEntity> strokes;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -17,6 +19,7 @@ class NoteEntity extends Equatable {
     this.tags = const [],
     this.linkedTaskId,
     required this.colorHex,
+    this.strokes = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -28,6 +31,7 @@ class NoteEntity extends Equatable {
     String? linkedTaskId,
     bool clearLinkedTaskId = false,
     String? colorHex,
+    List<DrawingStrokeEntity>? strokes,
     DateTime? updatedAt,
   }) {
     return NoteEntity(
@@ -37,11 +41,13 @@ class NoteEntity extends Equatable {
       tags: tags ?? this.tags,
       linkedTaskId: clearLinkedTaskId ? null : (linkedTaskId ?? this.linkedTaskId),
       colorHex: colorHex ?? this.colorHex,
+      strokes: strokes ?? this.strokes,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, body, tags, linkedTaskId, colorHex, createdAt, updatedAt];
+  List<Object?> get props =>
+      [id, title, body, tags, linkedTaskId, colorHex, strokes, createdAt, updatedAt];
 }
