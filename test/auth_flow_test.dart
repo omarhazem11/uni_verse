@@ -47,6 +47,9 @@ class _FakeAuthRepository implements AuthRepository {
   Future<Either<Failure, UserEntity>> signInWithGoogle() async => throw UnimplementedError();
 
   @override
+  Future<Either<Failure, UserEntity>> signInWithFacebook() async => throw UnimplementedError();
+
+  @override
   Future<Either<Failure, void>> signOut() async {
     _controller.add(null);
     return const Right(null);

@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import '../../features/notifications/domain/entities/notification_entity.dart';
 import '../../features/notifications/domain/repositories/notification_repository.dart';
@@ -100,6 +102,37 @@ class NotificationService {
     await _plugin
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  // Whether the OS is actually willing to show notifications right now —
+  // distinct from whether we've asked for permission, since the user can
+  // deny/revoke it in system Settings at any time after granting it.
+  static Future<bool> areNotificationsEnabled() async {
+    if (Platform.isIOS) {
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      final result = await ios?.checkPermissions();
+      return result?.isEnabled ?? true;
+    }
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    return await android?.areNotificationsEnabled() ?? true;
+  }
+
+  // Deep-links into this app's notification settings screen — the request
+  // dialog only works once; once denied, the OS won't show it again, so
+  // Settings is the only way back in.
+  static Future<void> openNotificationSettings() async {
+    if (Platform.isIOS) {
+      await launchUrl(Uri.parse('app-settings:'));
+      return;
+    }
+    try {
+      await _alarmChannel.invokeMethod('openNotificationSettings');
+    } on PlatformException {
+      // No-op — user just won't be able to deep-link on this device/OS
+      // version; they can still find the setting manually.
+    }
   }
 
   // ---------------------------------------------------------------------------

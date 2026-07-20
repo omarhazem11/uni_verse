@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
 
@@ -9,6 +10,7 @@ const _userSubcollections = ['tasks', 'notes', 'schedule_items', 'settings', 'pr
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithGoogle();
+  Future<UserModel> signInWithFacebook();
   Future<void> signOut();
   Future<void> deleteAccount();
   Stream<UserModel?> get authStateChanges;
@@ -61,7 +63,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // Only write createdAt once — if the field already exists, merge
         // means it is left untouched on subsequent sign-ins.
         if (result.additionalUserInfo?.isNewUser == true)
-          'createdAt': DateTime.now().toIso8601String(),
+          'createdAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    return UserModel.fromFirebaseUser(user);
+  }
+
+  @override
+  Future<UserModel> signInWithFacebook() async {
+    final result = await FacebookAuth.instance.login(permissions: ['email', 'public_profile']);
+    if (result.status != LoginStatus.success) {
+      throw Exception('Facebook sign in aborted or failed');
+    }
+
+    final accessToken = result.accessToken!;
+    final credential = FacebookAuthProvider.credential(accessToken.tokenString);
+    final userCredential = await _firebaseAuth.signInWithCredential(credential);
+    final user = userCredential.user!;
+
+    // Same lightweight profile write as signInWithGoogle — keeps the admin
+    // panel's user list consistent no matter which provider was used.
+    await _firestore.collection('users').doc(user.uid).set(
+      {
+        'email': user.email,
+        'displayName': user.displayName,
+        if (userCredential.additionalUserInfo?.isNewUser == true)
+          'createdAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
     );
@@ -74,6 +103,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     await Future.wait([
       _firebaseAuth.signOut(),
       _googleSignIn.signOut(),
+      FacebookAuth.instance.logOut(),
     ]);
   }
 

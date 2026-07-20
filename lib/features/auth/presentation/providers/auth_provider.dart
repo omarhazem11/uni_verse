@@ -65,6 +65,25 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
     );
   }
 
+  Future<void> signInWithFacebook() async {
+    state = const AsyncValue.loading();
+    final result = await _authRepository.signInWithFacebook();
+    result.fold(
+      (failure) {
+        // Silently ignore popup closed / cancelled errors
+        if (failure.message.contains('popup') ||
+            failure.message.contains('aborted') ||
+            failure.message.contains('canceled') ||
+            failure.message.contains('cancelled')) {
+          state = const AsyncValue.data(null);
+        } else {
+          state = AsyncValue.error(failure.message, StackTrace.current);
+        }
+      },
+      (user) => state = AsyncValue.data(user),
+    );
+  }
+
   Future<void> signOut() async {
     await _authRepository.signOut();
     state = const AsyncValue.data(null);

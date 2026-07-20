@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/notification_remote_datasource.dart';
 import '../../data/repositories/notification_repository_impl.dart';
@@ -26,4 +27,12 @@ final unreadCountProvider = Provider<int>((ref) {
         loading: () => 0,
         error: (_, __) => 0,
       );
+});
+
+// autoDispose so leaving and re-entering the inbox re-checks the OS
+// permission fresh — the widget itself also invalidates this on app resume
+// (see NotificationInboxPage) to catch the case where the user backgrounds
+// the app to toggle the setting in system Settings and comes straight back.
+final notificationsEnabledProvider = FutureProvider.autoDispose<bool>((ref) {
+  return NotificationService.areNotificationsEnabled();
 });

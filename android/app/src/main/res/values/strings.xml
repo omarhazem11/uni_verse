@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Uni-Verse</string>
+    <string name="facebook_app_id">1185040663840530</string>
+    <string name="fb_login_protocol_scheme">fb1185040663840530</string>
+    <string name="facebook_client_token">7042926091f47fa5eacc19ae511884b3</string>
+</resources>

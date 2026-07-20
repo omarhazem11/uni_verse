@@ -8,14 +8,45 @@ import '../../../tasks/presentation/pages/task_detail_page.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/notification_tile.dart';
+import '../widgets/notifications_disabled_banner.dart';
 
-class NotificationInboxPage extends ConsumerWidget {
+class NotificationInboxPage extends ConsumerStatefulWidget {
   const NotificationInboxPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationInboxPage> createState() => _NotificationInboxPageState();
+}
+
+class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Catches the case where the user backgrounds the app to flip the OS
+  // notification toggle in system Settings (via the banner's own "Turn on"
+  // button, or manually) and comes straight back — without this the banner
+  // would keep showing stale "disabled" state until the next full navigation.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(notificationsEnabledProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final notifs = ref.watch(notificationsStreamProvider);
     final hasUnread = ref.watch(unreadCountProvider) > 0;
+    final notificationsEnabled = ref.watch(notificationsEnabledProvider).value ?? true;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -41,39 +72,46 @@ class NotificationInboxPage extends ConsumerWidget {
             ),
         ],
       ),
-      body: notifs.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) =>
-            const Center(child: Text('Something went wrong')),
-        data: (notifications) {
-          if (notifications.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.notifications_none_rounded,
-                      size: 64, color: AppColors.muted),
-                  SizedBox(height: 16),
-                  Text(
-                    'No notifications yet — reminders\nfor your tasks will show up here 🔔',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.muted, height: 1.5),
+      body: Column(
+        children: [
+          if (!notificationsEnabled) const NotificationsDisabledBanner(),
+          Expanded(
+            child: notifs.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) =>
+                  const Center(child: Text('Something went wrong')),
+              data: (notifications) {
+                if (notifications.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.notifications_none_rounded,
+                            size: 64, color: AppColors.muted),
+                        SizedBox(height: 16),
+                        Text(
+                          'No notifications yet — reminders\nfor your tasks will show up here 🔔',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.muted, height: 1.5),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: notifications.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                  itemBuilder: (context, i) => NotificationTile(
+                    notification: notifications[i],
+                    onTap: () => _handleTap(context, ref, notifications[i]),
                   ),
-                ],
-              ),
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: notifications.length,
-            separatorBuilder: (_, __) =>
-                const Divider(height: 1, indent: 16, endIndent: 16),
-            itemBuilder: (context, i) => NotificationTile(
-              notification: notifications[i],
-              onTap: () => _handleTap(context, ref, notifications[i]),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

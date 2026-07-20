@@ -234,11 +234,14 @@ class LoginPage extends ConsumerWidget {
           const SizedBox(height: 12),
 
           SocialButton(
-            onPressed: () => _showComingSoon(context, 'Facebook'),
+            onPressed: authState is AsyncLoading
+                ? null
+                : () => ref.read(authNotifierProvider.notifier).signInWithFacebook(),
             icon: const _FacebookIcon(),
             label: 'Continue with Facebook',
             backgroundColor: const Color(0xFF1877F2),
             textColor: Colors.white,
+            isLoading: authState is AsyncLoading,
           ),
 
           const SizedBox(height: 10),
