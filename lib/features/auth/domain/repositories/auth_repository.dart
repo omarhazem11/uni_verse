@@ -5,6 +5,7 @@ import '../entities/user_entity.dart';
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> signInWithGoogle();
   Future<Either<Failure, UserEntity>> signInWithFacebook();
+  Future<Either<Failure, UserEntity>> signInWithApple();
   Future<Either<Failure, void>> signOut();
 
   /// Permanently deletes the current user's Firestore data and Firebase

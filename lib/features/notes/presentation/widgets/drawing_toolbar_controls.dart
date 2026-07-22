@@ -15,7 +15,7 @@ class ToolButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Material(
         color: selected ? AppColors.violet : AppColors.bg,
         borderRadius: BorderRadius.circular(10),
@@ -42,7 +42,7 @@ class DrawingColorSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -69,7 +69,7 @@ class WidthPreset extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Material(
         color: selected ? AppColors.violet.withValues(alpha: 0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),

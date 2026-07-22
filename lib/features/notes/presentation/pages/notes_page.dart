@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/ad_banner.dart';
 import '../providers/note_provider.dart';
 import '../widgets/notes_empty_state.dart';
 import '../widgets/notes_list_view.dart';
@@ -93,38 +94,45 @@ class _NotesPageState extends ConsumerState<NotesPage> {
       appBar: _selectionMode
           ? _selectionAppBar(allFilteredIds)
           : const NotesSearchAppBar(),
-      body: notesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.violet)),
-        error: (_, __) => Center(
-          child: Text(
-            "Couldn't load your notes — pull down to try again.",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.muted),
-          ),
-        ),
-        data: (notes) => notes.isEmpty
-            ? NotesEmptyState(onCreateNote: () => _openEditor(context))
-            : Column(
-                children: [
-                  if (!_selectionMode) ...[
-                    const SizedBox(height: 12),
-                    const NotesTagFilterRow(),
-                    const SizedBox(height: 8),
-                  ] else
-                    const SizedBox(height: 12),
-                  Expanded(
-                    child: filtered.isEmpty
-                        ? const NotesNoResultsState()
-                        : NotesListView(
-                            notes: filtered,
-                            isSelectionMode: _selectionMode,
-                            selectedIds: _selected,
-                            onEnterSelectionMode: _enterSelectionMode,
-                            onToggleSelect: _toggleSelect,
-                          ),
-                  ),
-                ],
+      body: Column(
+        children: [
+          Expanded(
+            child: notesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.violet)),
+              error: (_, __) => Center(
+                child: Text(
+                  "Couldn't load your notes — pull down to try again.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.muted),
+                ),
               ),
+              data: (notes) => notes.isEmpty
+                  ? NotesEmptyState(onCreateNote: () => _openEditor(context))
+                  : Column(
+                      children: [
+                        if (!_selectionMode) ...[
+                          const SizedBox(height: 12),
+                          const NotesTagFilterRow(),
+                          const SizedBox(height: 8),
+                        ] else
+                          const SizedBox(height: 12),
+                        Expanded(
+                          child: filtered.isEmpty
+                              ? const NotesNoResultsState()
+                              : NotesListView(
+                                  notes: filtered,
+                                  isSelectionMode: _selectionMode,
+                                  selectedIds: _selected,
+                                  onEnterSelectionMode: _enterSelectionMode,
+                                  onToggleSelect: _toggleSelect,
+                                ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          const AdBanner(),
+        ],
       ),
       floatingActionButton: _selectionMode
           ? null

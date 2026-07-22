@@ -50,6 +50,9 @@ class _FakeAuthRepository implements AuthRepository {
   Future<Either<Failure, UserEntity>> signInWithFacebook() async => throw UnimplementedError();
 
   @override
+  Future<Either<Failure, UserEntity>> signInWithApple() async => throw UnimplementedError();
+
+  @override
   Future<Either<Failure, void>> signOut() async {
     _controller.add(null);
     return const Right(null);

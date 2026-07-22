@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -5,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'core/providers/subscription_provider.dart';
+import 'core/services/ad_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/widgets/uni_verse_logo.dart';
@@ -26,6 +30,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  unawaited(AdService.initialize());
   runApp(
     const ProviderScope(
       child: MyApp(),
@@ -140,6 +145,9 @@ class _PostLoginRouterState extends ConsumerState<_PostLoginRouter> {
   @override
   Widget build(BuildContext context) {
     final userTypeAsync = ref.watch(userTypeProvider);
+    // Kick off RevenueCat configuration + entitlement sync as soon as we're
+    // past login, so the Pro status is warm by the time Settings is opened.
+    ref.watch(subscriptionProvider);
 
     return userTypeAsync.when(
       loading: () => const SplashScreen(showSpinner: true),

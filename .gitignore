@@ -4,3 +4,7 @@ build/
 .flutter-plugins-dependencies
 .idea/
 .vscode/
+
+# Release signing — never commit the keystore or its passwords.
+android/key.properties
+android/keystore/

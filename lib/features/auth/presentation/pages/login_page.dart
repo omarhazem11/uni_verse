@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,20 +15,9 @@ import '../widgets/uni_card_grid.dart';
 class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
 
-  void _showComingSoon(BuildContext context, String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$provider Sign-In coming soon!',
-          style: GoogleFonts.inter(color: Colors.white),
-        ),
-        backgroundColor: AppColors.violet,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
+  // Apple Sign-In is only relevant (and only reviewable/testable) on iOS —
+  // hide it on Android and web rather than show a dead "coming soon" button.
+  bool get _showAppleButton => !kIsWeb && Platform.isIOS;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -220,16 +211,20 @@ class LoginPage extends ConsumerWidget {
             isLoading: authState is AsyncLoading,
           ),
 
-          const SizedBox(height: 12),
-
-          SocialButton(
-            onPressed: () => _showComingSoon(context, 'Apple'),
-            icon: const Icon(Icons.apple, color: Colors.white, size: 22),
-            label: 'Continue with Apple',
-            backgroundColor: Colors.transparent,
-            textColor: Colors.white,
-            borderColor: AppColors.muted.withValues(alpha: 0.4),
-          ),
+          if (_showAppleButton) ...[
+            const SizedBox(height: 12),
+            SocialButton(
+              onPressed: authState is AsyncLoading
+                  ? null
+                  : () => ref.read(authNotifierProvider.notifier).signInWithApple(),
+              icon: const Icon(Icons.apple, color: Colors.white, size: 22),
+              label: 'Continue with Apple',
+              backgroundColor: Colors.transparent,
+              textColor: Colors.white,
+              borderColor: AppColors.muted.withValues(alpha: 0.4),
+              isLoading: authState is AsyncLoading,
+            ),
+          ],
 
           const SizedBox(height: 12),
 

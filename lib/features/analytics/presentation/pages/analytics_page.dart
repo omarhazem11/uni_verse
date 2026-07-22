@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/ad_banner.dart';
 import '../providers/analytics_provider.dart';
 import '../widgets/analytics_summary_card.dart';
 import '../widgets/category_breakdown_card.dart';
@@ -32,61 +33,68 @@ class AnalyticsPage extends ConsumerWidget {
           child: Container(height: 1, color: AppColors.divider),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: AnalyticsSummaryCard(
-                    value: analytics.totalTasks == 0 ? '—' : '${(analytics.completionRate * 100).round()}%',
-                    label: 'Completion Rate',
-                    color: AppColors.violet,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AnalyticsSummaryCard(
+                          value: analytics.totalTasks == 0 ? '—' : '${(analytics.completionRate * 100).round()}%',
+                          label: 'Completion Rate',
+                          color: AppColors.violet,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AnalyticsSummaryCard(
+                          value: analytics.completedTasks == 0 ? 'Get started! 🌱' : '${analytics.completedTasks}',
+                          label: 'Tasks Completed',
+                          color: AppColors.violet,
+                          valueFontSize: analytics.completedTasks == 0 ? 16 : 28,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AnalyticsSummaryCard(
-                    value: analytics.completedTasks == 0 ? 'Get started! 🌱' : '${analytics.completedTasks}',
-                    label: 'Tasks Completed',
-                    color: AppColors.violet,
-                    valueFontSize: analytics.completedTasks == 0 ? 16 : 28,
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AnalyticsSummaryCard(
+                          value: onTimePercent == null ? '—' : '$onTimePercent%',
+                          label: onTimePercent == null ? 'On Time' : 'On Time (${analytics.onTimeCompletions})',
+                          color: AppColors.mint,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AnalyticsSummaryCard(
+                          value: totalOverdue == 0 ? 'None' : '$totalOverdue',
+                          label: totalOverdue == 0 ? '— great job! 🎉' : 'Overdue',
+                          color: AppColors.coral,
+                          valueFontSize: totalOverdue == 0 ? 22 : 28,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  _ChartCard(
+                    title: 'Tasks Completed (Last 8 Weeks)',
+                    child: WeeklyBarChart(weeks: analytics.weeklyCompletions),
+                  ),
+                  const SizedBox(height: 20),
+                  CategoryBreakdownCard(breakdown: analytics.categoryBreakdown, totalTasks: analytics.totalTasks),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: AnalyticsSummaryCard(
-                    value: onTimePercent == null ? '—' : '$onTimePercent%',
-                    label: onTimePercent == null ? 'On Time' : 'On Time (${analytics.onTimeCompletions})',
-                    color: AppColors.mint,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AnalyticsSummaryCard(
-                    value: totalOverdue == 0 ? 'None' : '$totalOverdue',
-                    label: totalOverdue == 0 ? '— great job! 🎉' : 'Overdue',
-                    color: AppColors.coral,
-                    valueFontSize: totalOverdue == 0 ? 22 : 28,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _ChartCard(
-              title: 'Tasks Completed (Last 8 Weeks)',
-              child: WeeklyBarChart(weeks: analytics.weeklyCompletions),
-            ),
-            const SizedBox(height: 20),
-            CategoryBreakdownCard(breakdown: analytics.categoryBreakdown, totalTasks: analytics.totalTasks),
-          ],
-        ),
+          ),
+          const AdBanner(),
+        ],
       ),
     );
   }

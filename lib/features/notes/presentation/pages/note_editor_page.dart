@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/subscription_provider.dart';
+import '../../../../core/services/ad_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../planner/presentation/utils/schedule_color.dart';
 import '../../domain/entities/drawing_stroke_entity.dart';
@@ -73,10 +75,12 @@ class _NoteEditorPageState extends ConsumerState<NoteEditorPage> {
     final strokes = List<DrawingStrokeEntity>.of(_strokes);
     final existingNote = widget.existingNote;
     final notifier = ref.read(noteActionsProvider.notifier);
+    final isPro = ref.read(subscriptionProvider).value ?? false;
 
     Navigator.of(context).pop();
 
     if (!hasContent) return;
+    AdService.maybeShowInterstitial(isPro: isPro);
     saveNoteFromEditor(
       notifier: notifier,
       existingNote: existingNote,

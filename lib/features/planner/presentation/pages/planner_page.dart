@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/ad_banner.dart';
 import '../providers/planner_provider.dart';
 import '../widgets/add_schedule_item_sheet.dart';
 import '../widgets/date_strip.dart';
@@ -56,6 +57,7 @@ class PlannerPage extends ConsumerWidget {
           const DateStrip(),
           const SizedBox(height: 4),
           Expanded(child: DayTimelineView(date: selectedDate)),
+          const AdBanner(),
         ],
       ),
       floatingActionButton: FloatingActionButton(

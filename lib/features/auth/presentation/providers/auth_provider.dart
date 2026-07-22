@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/purchase_service.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
@@ -84,8 +85,27 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
     );
   }
 
+  Future<void> signInWithApple() async {
+    state = const AsyncValue.loading();
+    final result = await _authRepository.signInWithApple();
+    result.fold(
+      (failure) {
+        // Silently ignore user-cancelled the Apple sheet.
+        if (failure.message.contains('canceled') ||
+            failure.message.contains('cancelled') ||
+            failure.message.contains('1001')) {
+          state = const AsyncValue.data(null);
+        } else {
+          state = AsyncValue.error(failure.message, StackTrace.current);
+        }
+      },
+      (user) => state = AsyncValue.data(user),
+    );
+  }
+
   Future<void> signOut() async {
     await _authRepository.signOut();
+    await PurchaseService.logOut();
     state = const AsyncValue.data(null);
   }
 

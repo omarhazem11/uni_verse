@@ -7,6 +7,8 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/utils/delete_account_flow.dart';
 import '../../../onboarding/domain/entities/user_type.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
+import '../../../../core/providers/subscription_provider.dart';
+import '../../../subscription/presentation/pages/paywall_page.dart';
 import '../../data/data_export_service.dart';
 import '../providers/settings_provider.dart';
 import '../utils/switch_user_type_flow.dart';
@@ -31,6 +33,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     final userType = ref.watch(userTypeProvider).value;
     final notifEnabled = ref.watch(notificationsEnabledProvider);
     final version = ref.watch(packageInfoProvider).value?.version ?? '…';
+    final isPro = ref.watch(subscriptionProvider).value ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -47,6 +50,18 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
         children: [
+          SettingsSection(label: 'MEMBERSHIP', children: [
+            SettingsRow(
+              icon: Icons.workspace_premium_rounded,
+              title: isPro ? 'Uni-Verse Pro' : 'Go Pro',
+              subtitle: isPro
+                  ? 'Your subscription is active'
+                  : 'Remove ads and unlock premium features',
+              titleColor: isPro ? AppColors.violet : null,
+              onTap: () => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => const PaywallPage())),
+            ),
+          ]),
           SettingsSection(label: 'ACCOUNT', children: [
             if (userType == UserType.searching)
               SettingsRow(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/horizontal_scroll_hint.dart';
+import '../../../../core/widgets/vertical_scroll_hint.dart';
 import '../../../planner/presentation/utils/schedule_color.dart';
 import 'drawing_canvas.dart';
 import 'drawing_toolbar_controls.dart';
@@ -8,6 +8,9 @@ import 'zoom_controls.dart';
 
 const _widthPresets = [3.0, 6.0, 10.0];
 
+/// Vertical tool strip — lives at the right edge of the drawing canvas
+/// instead of the bottom, so it isn't obscured by the system gesture bar on
+/// phones where that bar overlaps the bottom of the screen.
 class DrawingToolbar extends StatelessWidget {
   final CanvasTool tool;
   final String colorHex;
@@ -48,16 +51,16 @@ class DrawingToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.divider)),
+        border: Border(left: BorderSide(color: AppColors.divider)),
       ),
-      child: HorizontalScrollHint(
+      child: VerticalScrollHint(
         builder: (context, controller) => SingleChildScrollView(
         controller: controller,
-        scrollDirection: Axis.horizontal,
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ToolButton(icon: Icons.edit_rounded, selected: tool == CanvasTool.pen,
                 onTap: () => onToolChanged(CanvasTool.pen)),
@@ -67,18 +70,18 @@ class DrawingToolbar extends StatelessWidget {
                 onTap: () => onToolChanged(CanvasTool.eraser)),
             ToolButton(icon: Icons.pan_tool_rounded, selected: tool == CanvasTool.pan,
                 onTap: () => onToolChanged(CanvasTool.pan)),
-            const SizedBox(width: 10),
-            Container(width: 1, height: 28, color: AppColors.divider),
-            const SizedBox(width: 10),
+            const SizedBox(height: 10),
+            Container(height: 1, width: 28, color: AppColors.divider),
+            const SizedBox(height: 10),
             if (_showColorControls) ...[
               for (final hex in plannerColorPalette) DrawingColorSwatch(
                 hex: hex,
                 selected: hex == colorHex,
                 onTap: () => onColorChanged(hex),
               ),
-              const SizedBox(width: 10),
-              Container(width: 1, height: 28, color: AppColors.divider),
-              const SizedBox(width: 10),
+              const SizedBox(height: 10),
+              Container(height: 1, width: 28, color: AppColors.divider),
+              const SizedBox(height: 10),
             ],
             if (_showWidthControls) ...[
               for (final w in _widthPresets) WidthPreset(
@@ -86,9 +89,9 @@ class DrawingToolbar extends StatelessWidget {
                 selected: w == strokeWidth,
                 onTap: () => onWidthChanged(w),
               ),
-              const SizedBox(width: 10),
-              Container(width: 1, height: 28, color: AppColors.divider),
-              const SizedBox(width: 10),
+              const SizedBox(height: 10),
+              Container(height: 1, width: 28, color: AppColors.divider),
+              const SizedBox(height: 10),
             ],
             IconButton(
               onPressed: canUndo ? onUndo : null,
@@ -105,9 +108,9 @@ class DrawingToolbar extends StatelessWidget {
               icon: const Icon(Icons.delete_outline_rounded),
               color: AppColors.coral,
             ),
-            const SizedBox(width: 10),
-            Container(width: 1, height: 28, color: AppColors.divider),
-            const SizedBox(width: 4),
+            const SizedBox(height: 10),
+            Container(height: 1, width: 28, color: AppColors.divider),
+            const SizedBox(height: 4),
             ZoomControls(zoom: zoom, onZoomIn: onZoomIn, onZoomOut: onZoomOut),
           ],
         ),

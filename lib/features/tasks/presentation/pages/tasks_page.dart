@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/ad_banner.dart';
 import '../providers/task_provider.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/task_empty_state.dart';
@@ -89,26 +90,33 @@ class _TasksPageState extends ConsumerState<TasksPage> {
       appBar: _selectionMode
           ? _selectionAppBar(tasksAsync.value?.map((t) => t.id).toList() ?? [])
           : _normalAppBar(),
-      body: tasksAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.violet),
-        ),
-        error: (error, _) => Center(
-          child: Text(
-            "Couldn't load your tasks — pull down to try again.",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.muted),
-          ),
-        ),
-        data: (tasks) => tasks.isEmpty
-            ? TaskEmptyState(onAddTask: () => _openAddSheet(context))
-            : TaskListView(
-                tasks: tasks,
-                isSelectionMode: _selectionMode,
-                selectedIds: _selected,
-                onEnterSelectionMode: _enterSelectionMode,
-                onToggleSelect: _toggleSelect,
+      body: Column(
+        children: [
+          Expanded(
+            child: tasksAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.violet),
               ),
+              error: (error, _) => Center(
+                child: Text(
+                  "Couldn't load your tasks — pull down to try again.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.muted),
+                ),
+              ),
+              data: (tasks) => tasks.isEmpty
+                  ? TaskEmptyState(onAddTask: () => _openAddSheet(context))
+                  : TaskListView(
+                      tasks: tasks,
+                      isSelectionMode: _selectionMode,
+                      selectedIds: _selected,
+                      onEnterSelectionMode: _enterSelectionMode,
+                      onToggleSelect: _toggleSelect,
+                    ),
+            ),
+          ),
+          const AdBanner(),
+        ],
       ),
       floatingActionButton: _selectionMode
           ? null
